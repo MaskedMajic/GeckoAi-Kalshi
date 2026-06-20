@@ -16,6 +16,10 @@ from cryptography.hazmat.primitives.serialization import load_pem_private_key
 WS_URL = "wss://external-api-ws.kalshi.com/trade-api/ws/v2"
 WS_PATH = "/trade-api/ws/v2"
 
+BLUE = "\033[96m"
+RED = "\033[91m"
+RESET = "\033[0m"
+
 _latest = {}
 _running = False
 
@@ -90,7 +94,9 @@ async def _stream(market_ticker):
         }
 
         await ws.send(json.dumps(subscribe))
-        print(f"[STREAM] Subscribed to {market_ticker}")
+
+        print()
+        print(f"{BLUE}🔵 [STREAM]{RESET} Subscribed to {market_ticker}")
 
         _running = True
 
@@ -106,7 +112,8 @@ def _run_loop(market_ticker):
     try:
         asyncio.run(_stream(market_ticker))
     except Exception as e:
-        print(f"[STREAM ERROR] {e}")
+        print()
+        print(f"{RED}🔴 [STREAM ERROR]{RESET} {e}")
 
 
 def start(market_ticker):
