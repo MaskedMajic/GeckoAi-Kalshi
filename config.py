@@ -3,21 +3,122 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-MODE = os.getenv("MODE", "paper")
 
-STARTING_BANKROLL = float(os.getenv("STARTING_BANKROLL", "5"))
-MAX_TRADE_PCT = float(os.getenv("MAX_TRADE_PCT", "20"))
+# ==========================
+# Runtime
+# ==========================
 
-DISCORD_ENABLED = os.getenv("DISCORD_ENABLED", "false").lower() == "true"
-DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL", "")
+MODE = os.getenv(
+    "MODE",
+    "paper"
+)
 
-KALSHI_KEY_ID = os.getenv("KALSHI_KEY_ID", "")
-KALSHI_PRIVATE_KEY_PATH = os.getenv("KALSHI_PRIVATE_KEY_PATH", "")
+SIZING_MODE = os.getenv(
+    "SIZING_MODE",
+    "balance_step"
+)
 
-SIZING_MODE = os.getenv("SIZING_MODE", "fixed").lower()
-FIXED_CONTRACTS = int(os.getenv("FIXED_CONTRACTS", "1"))
-MAX_CONTRACTS = int(os.getenv("MAX_CONTRACTS", "10"))
 
-LIVE_MAX_CONTRACTS = int(os.getenv("LIVE_MAX_CONTRACTS", "1"))
+# ==========================
+# Position Sizing
+# ==========================
 
-TRADE_JSON_PATH = os.getenv("TRADE_JSON_PATH", "data/trades.json")
+FIXED_CONTRACTS = int(
+    os.getenv(
+        "FIXED_CONTRACTS",
+        1
+    )
+)
+
+MAX_CONTRACTS = int(
+    os.getenv(
+        "MAX_CONTRACTS",
+        50
+    )
+)
+
+LIVE_MAX_CONTRACTS = int(
+    os.getenv(
+        "LIVE_MAX_CONTRACTS",
+        10
+    )
+)
+
+
+# ==========================
+# Strategy Rules
+# ==========================
+
+ENTRY_MIN = float(
+    os.getenv(
+        "ENTRY_MIN",
+        0.87
+    )
+)
+
+ENTRY_MAX = float(
+    os.getenv(
+        "ENTRY_MAX",
+        0.95
+    )
+)
+
+MAX_TIME_LEFT_MINUTES = int(
+    os.getenv(
+        "MAX_TIME_LEFT_MINUTES",
+        6
+    )
+)
+
+MIN_BANKROLL = float(
+    os.getenv(
+        "MIN_BANKROLL",
+        1
+    )
+)
+
+
+# ==========================
+# Discord
+# ==========================
+
+DISCORD_ENABLED = (
+    os.getenv(
+        "DISCORD_ENABLED",
+        "true"
+    ).lower()
+    ==
+    "true"
+)
+
+DISCORD_WEBHOOK_URL = os.getenv(
+    "DISCORD_WEBHOOK_URL",
+    ""
+)
+
+
+# ==========================
+# Logging
+# ==========================
+
+ENABLE_LOGS = (
+    os.getenv(
+        "ENABLE_LOGS",
+        "true"
+    ).lower()
+    ==
+    "true"
+)
+# ==========================
+# Kalshi Auth
+# ==========================
+
+KALSHI_KEY_ID = os.getenv(
+    "KALSHI_KEY_ID",
+    ""
+)
+
+KALSHI_PRIVATE_KEY_PATH = os.getenv(
+    "KALSHI_PRIVATE_KEY_PATH",
+    "kalshi_private.key.pem"
+)
