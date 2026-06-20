@@ -1,3 +1,4 @@
+import sys
 import time
 from datetime import datetime, timezone
 
@@ -20,6 +21,16 @@ def mins(close):
 def closed(close):
     dt = datetime.fromisoformat(close.replace("Z", "+00:00"))
     return datetime.now(timezone.utc) >= dt
+
+
+def repaint(message):
+    sys.stdout.write("\r" + message + " " * 20)
+    sys.stdout.flush()
+
+
+def log(message):
+    print()
+    print(message)
 
 
 def get_starting_balance():
@@ -92,7 +103,7 @@ while True:
         if live:
             current = live["yes"] if open_trade["side"] == "YES" else live["no"]
 
-            print(
+            repaint(
                 f"[TRACK] {open_trade['side']} | "
                 f"ENTRY={open_trade['entry']:.2f} | "
                 f"NOW={current:.2f} | "
@@ -102,11 +113,18 @@ while True:
             move = round(abs(current - open_trade["entry"]), 2)
 
             if move >= 0.10 and move != last_move:
+                log(
+                    f"📊 UPDATE | "
+                    f"{open_trade['side']} | "
+                    f"{open_trade['entry']:.2f} → {current:.2f}"
+                )
+
                 discord_alerts.send_message(
                     f"📊 UPDATE | "
                     f"{open_trade['side']} | "
                     f"{open_trade['entry']:.2f} → {current:.2f}"
                 )
+
                 last_move = move
 
         time.sleep(1)
@@ -115,27 +133,27 @@ while True:
     market = kalshi_client.get_market()
 
     if not market:
-        print("[WAIT MARKET]")
+        repaint("[WAIT MARKET]")
         kalshi_stream.stop()
         stream_ticker = None
         time.sleep(5)
         continue
 
     if stream_ticker != market["ticker"]:
-        print(f"[ROLLOVER] Switching stream to {market['ticker']}")
+        log(f"[ROLLOVER] Switching stream to {market['ticker']}")
 
         kalshi_stream.stop()
         stream_ticker = market["ticker"]
         kalshi_stream.start(stream_ticker)
 
-        print("[WAIT PRICE] Waiting for first stream tick...")
+        repaint("[WAIT PRICE] Waiting for first stream tick...")
         time.sleep(2)
         continue
 
     live_price = get_price(market)
 
     if not live_price:
-        print("[WAIT PRICE]")
+        repaint("[WAIT PRICE]")
         time.sleep(2)
         continue
 
@@ -153,7 +171,7 @@ while True:
         side = "NO"
         entry = no
 
-    print(
+    repaint(
         f"[WATCH] YES={yes:.2f} | "
         f"NO={no:.2f} | "
         f"TIME={time_left}m | "
@@ -163,7 +181,7 @@ while True:
 
     if side:
         allowed, reason = strategy.should_trade(entry, time_left)
-        print(f"[DECISION] {allowed} | {reason}")
+        log(f"[DECISION] {allowed} | {reason}")
 
         if allowed:
             if config.MODE == "live_test":
