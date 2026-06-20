@@ -1,0 +1,32 @@
+# Mac junk
+.DS_Store
+__MACOSX/
+._*
+
+# Virtual env
+venv/
+.venv/
+
+# Secrets
+.env
+.env.*
+
+# Python
+__pycache__/
+*.pyc
+
+# Logs
+logs/
+
+# Databases
+*.db
+*.sqlite
+
+# Keys
+*.pem
+*.key
+
+# Local
+.vscode/
+backups/
+.qodo/
