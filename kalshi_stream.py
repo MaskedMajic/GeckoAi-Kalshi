@@ -122,4 +122,7 @@ def start(market_ticker):
 
 def stop():
     global _running
+    global _latest
+
     _running = False
+    _latest = {}

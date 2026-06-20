@@ -9,14 +9,12 @@ import paper_broker
 import live_broker
 import discord_alerts
 import kalshi_client
+import kalshi_stream
 
 
 def mins(close):
     dt = datetime.fromisoformat(close.replace("Z", "+00:00"))
-    return max(
-        0,
-        int((dt - datetime.now(timezone.utc)).total_seconds() / 60),
-    )
+    return max(0, int((dt - datetime.now(timezone.utc)).total_seconds() / 60))
 
 
 def closed(close):
@@ -30,6 +28,28 @@ def get_starting_balance():
 
     summary = stats.get_summary()
     return summary["latest_bankroll"]
+
+
+def get_price(market):
+    latest = kalshi_stream.get_latest()
+
+    if latest and latest.get("ticker") == market["ticker"]:
+        return {
+            "yes": latest["yes"],
+            "no": latest["no"],
+            "source": "STREAM",
+        }
+
+    fallback = kalshi_client.get_market_prices(market["ticker"])
+
+    if fallback:
+        return {
+            "yes": fallback["yes"],
+            "no": fallback["no"],
+            "source": "REST",
+        }
+
+    return None
 
 
 stats.init_db()
@@ -53,6 +73,7 @@ discord_alerts.send_message(startup)
 
 open_trade = None
 last_move = None
+stream_ticker = None
 
 while True:
     if open_trade:
@@ -66,19 +87,16 @@ while True:
             time.sleep(10)
             continue
 
-        live = kalshi_client.get_market_prices(open_trade["ticker"])
+        live = get_price(open_trade)
 
         if live:
-            current = (
-                live["yes"]
-                if open_trade["side"] == "YES"
-                else live["no"]
-            )
+            current = live["yes"] if open_trade["side"] == "YES" else live["no"]
 
             print(
                 f"[TRACK] {open_trade['side']} | "
                 f"ENTRY={open_trade['entry']:.2f} | "
-                f"NOW={current:.2f}"
+                f"NOW={current:.2f} | "
+                f"SRC={live['source']}"
             )
 
             move = round(abs(current - open_trade["entry"]), 2)
@@ -91,27 +109,47 @@ while True:
                 )
                 last_move = move
 
-        time.sleep(5)
+        time.sleep(1)
         continue
 
     market = kalshi_client.get_market()
 
     if not market:
-        print("[WAIT]")
-        time.sleep(10)
+        print("[WAIT MARKET]")
+        kalshi_stream.stop()
+        stream_ticker = None
+        time.sleep(5)
         continue
 
-    yes = market["yes_entry"]
-    no = market["no_entry"]
+    if stream_ticker != market["ticker"]:
+        print(f"[ROLLOVER] Switching stream to {market['ticker']}")
+
+        kalshi_stream.stop()
+        stream_ticker = market["ticker"]
+        kalshi_stream.start(stream_ticker)
+
+        print("[WAIT PRICE] Waiting for first stream tick...")
+        time.sleep(2)
+        continue
+
+    live_price = get_price(market)
+
+    if not live_price:
+        print("[WAIT PRICE]")
+        time.sleep(2)
+        continue
+
+    yes = live_price["yes"]
+    no = live_price["no"]
     time_left = mins(market["close"])
 
     side = None
     entry = None
 
-    if 0.88 <= yes <= 0.95:
+    if config.ENTRY_MIN <= yes <= config.ENTRY_MAX:
         side = "YES"
         entry = yes
-    elif 0.88 <= no <= 0.95:
+    elif config.ENTRY_MIN <= no <= config.ENTRY_MAX:
         side = "NO"
         entry = no
 
@@ -119,7 +157,8 @@ while True:
         f"[WATCH] YES={yes:.2f} | "
         f"NO={no:.2f} | "
         f"TIME={time_left}m | "
-        f"SIDE={side or '-'}"
+        f"SIDE={side or '-'} | "
+        f"SRC={live_price['source']}"
     )
 
     if side:
@@ -142,4 +181,4 @@ while True:
                     time_left,
                 )
 
-    time.sleep(5 if time_left <= 5 else 30)
+    time.sleep(1)
