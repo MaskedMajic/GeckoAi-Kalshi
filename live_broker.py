@@ -4,7 +4,6 @@ import base64
 import requests
 
 import config
-import stats
 import risk
 import discord_alerts
 import kalshi_client
@@ -61,23 +60,29 @@ def headers(method, path):
 
 
 def get_live_balance():
-    response = requests.get(
-        HOST + BALANCE_PATH,
-        headers=headers("GET", BALANCE_PATH),
-        timeout=10
-    )
-
-    if response.status_code != 200:
-        return 0
-
-    data = response.json()
-
-    return float(
-        data.get(
-            "balance_dollars",
-            0
+    try:
+        response = requests.get(
+            HOST + BALANCE_PATH,
+            headers=headers("GET", BALANCE_PATH),
+            timeout=10
         )
-    )
+
+        if response.status_code != 200:
+            print(f"[BALANCE ERROR] {response.status_code} | {response.text}")
+            return 0
+
+        data = response.json()
+
+        return float(
+            data.get(
+                "balance_dollars",
+                0
+            )
+        )
+
+    except requests.exceptions.RequestException as e:
+        print(f"[BALANCE ERROR] {e}")
+        return 0
 
 
 def calc_price(side, entry):
@@ -134,12 +139,23 @@ def place_live_order(market, side, entry, time_left):
         print(f"[LIVE] {attempt}/{MAX_FILL_ATTEMPTS}")
         print(body)
 
-        response = requests.post(
-            HOST + ORDER_PATH,
-            headers=headers("POST", ORDER_PATH),
-            json=body,
-            timeout=10
-        )
+        try:
+            response = requests.post(
+                HOST + ORDER_PATH,
+                headers=headers("POST", ORDER_PATH),
+                json=body,
+                timeout=10
+            )
+
+        except requests.exceptions.RequestException as e:
+            print(f"[ORDER ERROR] {e}")
+            discord_alerts.send_message(
+                f"❌ **ORDER ERROR {attempt}/{MAX_FILL_ATTEMPTS}** | "
+                f"`{market['ticker']}` | {side} @ `{entry:.2f}` | "
+                f"`{contracts}`ct | `{e}`"
+            )
+            time.sleep(1)
+            continue
 
         print(response.status_code)
         print(response.text)
