@@ -5,14 +5,24 @@ import config
 def send_message(message):
 
     if not config.DISCORD_ENABLED:
-        return
+        return False
 
     if not config.DISCORD_WEBHOOK_URL:
-        return
+        return False
 
-    requests.post(
-        config.DISCORD_WEBHOOK_URL,
-        json={
-            "content": message
-        }
-    )
+    try:
+        response = requests.post(
+            config.DISCORD_WEBHOOK_URL,
+            json={
+                "content": message
+            },
+            timeout=5
+        )
+
+        response.raise_for_status()
+
+        return True
+
+    except requests.exceptions.RequestException as e:
+        print(f"[DISCORD ERROR] {e}")
+        return False
