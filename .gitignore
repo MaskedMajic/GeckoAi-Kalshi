@@ -36,3 +36,5 @@ data/*.json
 # Trade logs
 data/*.json
 trades.json
+
+stream_test.py
