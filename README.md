@@ -121,6 +121,8 @@ Paper results do not guarantee live performance.
 
 Use responsibly.
 
+Buy me some Coffee with SOL GFAZfcwjddxPJ2HgMbBd8a1Mg7KKCJQgUmKCm8v81Rix
+
 ---
 
 Built by **MaskedMajic**
