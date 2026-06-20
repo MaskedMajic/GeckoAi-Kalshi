@@ -2,353 +2,169 @@ import time
 from datetime import datetime, timezone
 
 import config
-import stats
-import strategy
-import risk
-import paper_broker
-import live_broker
 import discord_alerts
 import kalshi_client
+import live_broker
+import paper_broker
+import risk
+import stats
+import strategy
 
 
-def mins(close):
-    dt = datetime.fromisoformat(
-        close.replace("Z", "+00:00")
+LIVE_MODE = "live_test"
+
+
+def minutes_until_close(close_time: str) -> int:
+    close_dt = datetime.fromisoformat(close_time.replace("Z", "+00:00"))
+    seconds_left = (close_dt - datetime.now(timezone.utc)).total_seconds()
+    return max(0, int(seconds_left / 60))
+
+
+def is_closed(close_time: str) -> bool:
+    close_dt = datetime.fromisoformat(close_time.replace("Z", "+00:00"))
+    return datetime.now(timezone.utc) >= close_dt
+
+
+def is_live_mode() -> bool:
+    return config.MODE == LIVE_MODE
+
+
+def get_starting_balance() -> float:
+    if is_live_mode():
+        return strategy.get_live_balance()
+
+    summary = stats.get_summary()
+    return summary["latest_bankroll"]
+
+
+def send_startup_alert(balance: float) -> None:
+    preview_contracts = risk.get_contracts(balance, 0.90)
+    display_mode = "LIVE" if is_live_mode() else config.MODE.upper()
+
+    startup = (
+        "📡 BOT STARTED\n"
+        f"Mode: {display_mode}\n"
+        f"Balance: ${balance:.2f}\n"
+        f"Contracts: {preview_contracts}\n"
+        f"Sizing: {config.SIZING_MODE}"
     )
 
-    return max(
-        0,
-        int(
-            (
-                dt
-                -
-                datetime.now(
-                    timezone.utc
-                )
-            ).total_seconds()
-            /
-            60
-        )
-    )
+    print()
+    print(startup)
+    discord_alerts.send_message(startup)
 
 
-def closed(close):
-    dt = datetime.fromisoformat(
-        close.replace("Z", "+00:00")
-    )
+def settle_open_trade(open_trade):
+    if not is_closed(open_trade["close"]):
+        return open_trade
 
-    return (
-        datetime.now(
-            timezone.utc
-        )
-        >=
-        dt
-    )
+    settled = paper_broker.close_paper_trade(open_trade)
+
+    if settled:
+        return None
+
+    return open_trade
 
 
-def get_starting_balance():
+def track_open_trade(open_trade, last_move):
+    live = kalshi_client.get_market_prices(open_trade["ticker"])
 
-    if (
-        config.MODE
-        ==
-        "live_test"
-    ):
-
-        return (
-            strategy
-            .get_live_balance()
-        )
-
-    summary = (
-        stats.get_summary()
-    )
-
-    return (
-        summary[
-            "latest_bankroll"
-        ]
-    )
-
-
-stats.init_db()
-
-starting_balance = (
-    get_starting_balance()
-)
-
-preview_contracts = (
-    risk.get_contracts(
-        starting_balance,
-        .90
-    )
-)
-
-display_mode = (
-    "LIVE"
-    if config.MODE == "live_test"
-    else config.MODE.upper()
-)
-
-startup = (
-    f"📡 BOT STARTED\n"
-    f"Mode: {display_mode}\n"
-    f"Balance: ${starting_balance:.2f}\n"
-    f"Contracts: {preview_contracts}\n"
-    f"Sizing: {config.SIZING_MODE}"
-)
-
-print()
-print(startup)
-
-discord_alerts.send_message(
-    startup
-)
-
-discord_alerts.send_message(
-    startup
-)
-
-open_trade = None
-last_move = None
-
-
-while True:
-
-    if open_trade:
-
-        if (
-            closed(
-                open_trade[
-                    "close"
-                ]
-            )
-        ):
-
-            settled = (
-                paper_broker
-                .close_paper_trade(
-                    open_trade
-                )
-            )
-
-            if settled:
-
-                open_trade = None
-                last_move = None
-
-            time.sleep(10)
-
-            continue
-
-        live = (
-            kalshi_client
-            .get_market_prices(
-                open_trade[
-                    "ticker"
-                ]
-            )
-        )
-
-        if live:
-
-            current = (
-
-                live[
-                    "yes"
-                ]
-
-                if (
-                    open_trade[
-                        "side"
-                    ]
-                    ==
-                    "YES"
-                )
-
-                else
-
-                live[
-                    "no"
-                ]
-
-            )
-
-            print(
-                f"[TRACK] "
-                f"{open_trade['side']} | "
-                f"ENTRY="
-                f"{open_trade['entry']:.2f} | "
-                f"NOW="
-                f"{current:.2f}"
-            )
-
-            move = round(
-                abs(
-                    current
-                    -
-                    open_trade[
-                        "entry"
-                    ]
-                ),
-                2
-            )
-
-            if (
-                move
-                >=
-                .10
-                and
-                move
-                !=
-                last_move
-            ):
-
-                discord_alerts.send_message(
-                    f"📈 UPDATE | "
-                    f"{open_trade['side']} | "
-                    f"{open_trade['entry']:.2f}"
-                    f" → "
-                    f"{current:.2f}"
-                )
-
-                last_move = move
-
+    if not live:
         time.sleep(5)
+        return open_trade, last_move
 
-        continue
-
-    market = (
-        kalshi_client
-        .get_market()
-    )
-
-    if not market:
-
-        print(
-            "[WAIT]"
-        )
-
-        time.sleep(10)
-
-        continue
-
-    yes = (
-        market[
-            "yes_entry"
-        ]
-    )
-
-    no = (
-        market[
-            "no_entry"
-        ]
-    )
-
-    time_left = (
-        mins(
-            market[
-                "close"
-            ]
-        )
-    )
-
-    side = None
-    entry = None
-
-    if (
-        .88
-        <=
-        yes
-        <=
-        .95
-    ):
-
-        side = "YES"
-        entry = yes
-
-    elif (
-        .88
-        <=
-        no
-        <=
-        .95
-    ):
-
-        side = "NO"
-        entry = no
+    current = live["yes"] if open_trade["side"] == "YES" else live["no"]
 
     print(
-        f"[WATCH] "
-        f"YES={yes:.2f} | "
-        f"NO={no:.2f} | "
-        f"TIME={time_left}m | "
-        f"SIDE={side or '-'}"
+        f"[TRACK] {open_trade['side']} | "
+        f"ENTRY={open_trade['entry']:.2f} | "
+        f"NOW={current:.2f}"
     )
 
-    if side:
+    move = round(abs(current - open_trade["entry"]), 2)
 
-        allowed, reason = (
-            strategy
-            .should_trade(
-                entry,
-                time_left
-            )
+    if move >= 0.10 and move != last_move:
+        discord_alerts.send_message(
+            f"📊 UPDATE | "
+            f"{open_trade['side']} | "
+            f"{open_trade['entry']:.2f} → {current:.2f}"
         )
+        last_move = move
+
+    time.sleep(5)
+    return open_trade, last_move
+
+
+def pick_side(market):
+    yes = market["yes_entry"]
+    no = market["no_entry"]
+
+    if 0.88 <= yes <= 0.95:
+        return "YES", yes
+
+    if 0.88 <= no <= 0.95:
+        return "NO", no
+
+    return None, None
+
+
+def open_new_trade(market, side, entry, time_left):
+    if is_live_mode():
+        return live_broker.place_live_order(market, side, entry, time_left)
+
+    return paper_broker.open_paper_trade(market, side, entry, time_left)
+
+
+def main():
+    stats.init_db()
+
+    starting_balance = get_starting_balance()
+    send_startup_alert(starting_balance)
+
+    open_trade = None
+    last_move = None
+
+    while True:
+        if open_trade:
+            open_trade = settle_open_trade(open_trade)
+
+            if open_trade is None:
+                last_move = None
+                time.sleep(10)
+                continue
+
+            open_trade, last_move = track_open_trade(open_trade, last_move)
+            continue
+
+        market = kalshi_client.get_market()
+
+        if not market:
+            print("[WAIT]")
+            time.sleep(10)
+            continue
+
+        yes = market["yes_entry"]
+        no = market["no_entry"]
+        time_left = minutes_until_close(market["close"])
+
+        side, entry = pick_side(market)
 
         print(
-            f"[DECISION] "
-            f"{allowed} | "
-            f"{reason}"
+            f"[WATCH] YES={yes:.2f} | "
+            f"NO={no:.2f} | "
+            f"TIME={time_left}m | "
+            f"SIDE={side or '-'}"
         )
 
-        if allowed:
+        if side:
+            allowed, reason = strategy.should_trade(entry, time_left)
+            print(f"[DECISION] {allowed} | {reason}")
 
-            if (
-                config.MODE
-                ==
-                "live_test"
-            ):
+            if allowed:
+                open_trade = open_new_trade(market, side, entry, time_left)
 
-                open_trade = (
+        time.sleep(5 if time_left <= 5 else 30)
 
-                    live_broker
-                    .place_live_order(
 
-                        market,
-
-                        side,
-
-                        entry,
-
-                        time_left
-
-                    )
-
-                )
-
-            else:
-
-                open_trade = (
-
-                    paper_broker
-                    .open_paper_trade(
-
-                        market,
-
-                        side,
-
-                        entry,
-
-                        time_left
-
-                    )
-
-                )
-
-    if time_left <= 5:
-
-        time.sleep(5)
-
-    else:
-
-        time.sleep(30)
+if __name__ == "__main__":
+    main()
