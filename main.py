@@ -13,18 +13,31 @@ import kalshi_client
 import kalshi_stream
 
 
-def mins(close):
+GREEN = "\033[92m"
+YELLOW = "\033[93m"
+BLUE = "\033[96m"
+PURPLE = "\033[95m"
+RED = "\033[91m"
+RESET = "\033[0m"
+
+
+def time_left(close):
     dt = datetime.fromisoformat(close.replace("Z", "+00:00"))
-    return max(0, int((dt - datetime.now(timezone.utc)).total_seconds() / 60))
+    seconds = max(0, int((dt - datetime.now(timezone.utc)).total_seconds()))
+
+    mm = seconds // 60
+    ss = seconds % 60
+
+    return mm, ss, seconds
 
 
 def closed(close):
-    dt = datetime.fromisoformat(close.replace("Z", "+00:00"))
-    return datetime.now(timezone.utc) >= dt
+    _, _, seconds = time_left(close)
+    return seconds <= 0
 
 
 def repaint(message):
-    sys.stdout.write("\r" + message + " " * 20)
+    sys.stdout.write("\r" + message + " " * 25)
     sys.stdout.flush()
 
 
@@ -102,11 +115,14 @@ while True:
 
         if live:
             current = live["yes"] if open_trade["side"] == "YES" else live["no"]
+            mm, ss, _ = time_left(open_trade["close"])
 
             repaint(
-                f"[TRACK] {open_trade['side']} | "
+                f"{YELLOW}🟡 [TRACK]{RESET} "
+                f"{open_trade['side']} | "
                 f"ENTRY={open_trade['entry']:.2f} | "
                 f"NOW={current:.2f} | "
+                f"TIME={mm:02}:{ss:02} | "
                 f"SRC={live['source']}"
             )
 
@@ -114,7 +130,7 @@ while True:
 
             if move >= 0.10 and move != last_move:
                 log(
-                    f"📊 UPDATE | "
+                    f"{YELLOW}📊 UPDATE{RESET} | "
                     f"{open_trade['side']} | "
                     f"{open_trade['entry']:.2f} → {current:.2f}"
                 )
@@ -133,33 +149,34 @@ while True:
     market = kalshi_client.get_market()
 
     if not market:
-        repaint("[WAIT MARKET]")
+        repaint(f"{RED}🔴 [WAIT MARKET]{RESET}")
         kalshi_stream.stop()
         stream_ticker = None
         time.sleep(5)
         continue
 
     if stream_ticker != market["ticker"]:
-        log(f"[ROLLOVER] Switching stream to {market['ticker']}")
+        log(f"{PURPLE}🟣 [ROLLOVER]{RESET} Switching stream to {market['ticker']}")
 
         kalshi_stream.stop()
         stream_ticker = market["ticker"]
         kalshi_stream.start(stream_ticker)
 
-        repaint("[WAIT PRICE] Waiting for first stream tick...")
+        repaint(f"{BLUE}🔵 [WAIT PRICE]{RESET} Waiting for first stream tick...")
         time.sleep(2)
         continue
 
     live_price = get_price(market)
 
     if not live_price:
-        repaint("[WAIT PRICE]")
+        repaint(f"{BLUE}🔵 [WAIT PRICE]{RESET}")
         time.sleep(2)
         continue
 
     yes = live_price["yes"]
     no = live_price["no"]
-    time_left = mins(market["close"])
+    mm, ss, seconds_left = time_left(market["close"])
+    time_left_minutes = seconds_left / 60
 
     side = None
     entry = None
@@ -172,15 +189,16 @@ while True:
         entry = no
 
     repaint(
-        f"[WATCH] YES={yes:.2f} | "
+        f"{GREEN}🟢 [WATCH]{RESET} "
+        f"YES={yes:.2f} | "
         f"NO={no:.2f} | "
-        f"TIME={time_left}m | "
+        f"TIME={mm:02}:{ss:02} | "
         f"SIDE={side or '-'} | "
         f"SRC={live_price['source']}"
     )
 
     if side:
-        allowed, reason = strategy.should_trade(entry, time_left)
+        allowed, reason = strategy.should_trade(entry, time_left_minutes)
         log(f"[DECISION] {allowed} | {reason}")
 
         if allowed:
@@ -189,14 +207,14 @@ while True:
                     market,
                     side,
                     entry,
-                    time_left,
+                    time_left_minutes,
                 )
             else:
                 open_trade = paper_broker.open_paper_trade(
                     market,
                     side,
                     entry,
-                    time_left,
+                    time_left_minutes,
                 )
 
     time.sleep(1)
