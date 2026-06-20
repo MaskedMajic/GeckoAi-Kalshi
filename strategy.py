@@ -1,113 +1,55 @@
-import config
-import stats
 import requests
 
-from live_broker import (
-    headers,
-    HOST
-)
+import config
+import stats
+
+from live_broker import HOST, headers
 
 
-BALANCE_PATH = (
-    "/trade-api/v2/"
-    "portfolio/balance"
-)
+BALANCE_PATH = "/trade-api/v2/portfolio/balance"
 
 
 def get_live_balance():
-
     try:
-
         response = requests.get(
-
-            HOST
-            +
-            BALANCE_PATH,
-
-            headers=headers(
-                "GET",
-                BALANCE_PATH
-            ),
-
-            timeout=10
+            HOST + BALANCE_PATH,
+            headers=headers("GET", BALANCE_PATH),
+            timeout=10,
         )
 
-        if (
-            response.status_code
-            !=
-            200
-        ):
-
+        if response.status_code != 200:
+            print(f"[BALANCE ERROR] {response.status_code} | {response.text}")
             return 0
 
-        data = (
-            response.json()
-        )
+        data = response.json()
+        return float(data.get("balance_dollars", 0))
 
-        return float(
-            data.get(
-                "balance_dollars",
-                0
-            )
-        )
-
-    except:
-
+    except requests.exceptions.RequestException as e:
+        print(f"[BALANCE ERROR] {e}")
         return 0
 
 
-def should_trade(
-    entry,
-    time_left_minutes
-):
+def get_bankroll():
+    if config.MODE == "live_test":
+        return get_live_balance()
 
-    if (
-        config.MODE
-        ==
-        "live_test"
-    ):
+    summary = stats.get_summary()
+    return summary["latest_bankroll"]
 
-        bankroll = (
-            get_live_balance()
-        )
 
-    else:
+def should_trade(entry, time_left_minutes):
+    bankroll = get_bankroll()
 
-        summary = (
-            stats.get_summary()
-        )
+    if bankroll < config.MIN_BANKROLL:
+        return False, f"Bankroll below ${config.MIN_BANKROLL}"
 
-        bankroll = (
-            summary[
-                "latest_bankroll"
-            ]
-        )
+    if time_left_minutes > config.MAX_TIME_LEFT_MINUTES:
+        return False, f"{time_left_minutes}m remaining"
 
-    if bankroll < 1:
-        return (
-            False,
-            "Bankroll below $1"
-        )
+    if entry < config.ENTRY_MIN:
+        return False, f"Entry below {config.ENTRY_MIN:.2f}"
 
-    if time_left_minutes > 6:
-        return (
-            False,
-            f"{time_left_minutes}m remaining"
-        )
+    if entry > config.ENTRY_MAX:
+        return False, f"Entry above {config.ENTRY_MAX:.2f}"
 
-    if entry < 0.87:
-        return (
-            False,
-            "Entry below .87"
-        )
-
-    if entry > 0.95:
-        return (
-            False,
-            "Entry above .95"
-        )
-
-    return (
-        True,
-        f"Balance ${bankroll:.2f}"
-    )
+    return True, f"Balance ${bankroll:.2f}"
