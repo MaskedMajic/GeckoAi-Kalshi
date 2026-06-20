@@ -20,6 +20,25 @@ SIZING_MODE = os.getenv(
 
 
 # ==========================
+# Bankroll
+# ==========================
+
+STARTING_BANKROLL = float(
+    os.getenv(
+        "STARTING_BANKROLL",
+        5
+    )
+)
+
+MIN_BANKROLL = float(
+    os.getenv(
+        "MIN_BANKROLL",
+        1
+    )
+)
+
+
+# ==========================
 # Position Sizing
 # ==========================
 
@@ -70,13 +89,6 @@ MAX_TIME_LEFT_MINUTES = int(
     )
 )
 
-MIN_BANKROLL = float(
-    os.getenv(
-        "MIN_BANKROLL",
-        1
-    )
-)
-
 
 # ==========================
 # Discord
@@ -98,18 +110,6 @@ DISCORD_WEBHOOK_URL = os.getenv(
 
 
 # ==========================
-# Logging
-# ==========================
-
-ENABLE_LOGS = (
-    os.getenv(
-        "ENABLE_LOGS",
-        "true"
-    ).lower()
-    ==
-    "true"
-)
-# ==========================
 # Kalshi Auth
 # ==========================
 
@@ -121,4 +121,18 @@ KALSHI_KEY_ID = os.getenv(
 KALSHI_PRIVATE_KEY_PATH = os.getenv(
     "KALSHI_PRIVATE_KEY_PATH",
     "kalshi_private.key.pem"
+)
+
+
+# ==========================
+# Logging
+# ==========================
+
+ENABLE_LOGS = (
+    os.getenv(
+        "ENABLE_LOGS",
+        "true"
+    ).lower()
+    ==
+    "true"
 )
