@@ -14,7 +14,7 @@ Automated Bitcoin event trading for Kalshi with paper + live execution, balance-
 * 🔔 Discord notifications
 * 📡 Websocket + REST fallback pricing
 * 🔄 Auto-update on startup
-* 🗂️ Automatic database creation
+* 📁 Automatic database creation
 * ⚙️ Configurable risk controls
 
 ⸻
@@ -70,16 +70,16 @@ config.py           → Runtime configuration
 
 Installation
 
-Clone the repo:
+Clone:
 
 git clone https://github.com/MaskedMajic/GeckoAi-Kalshi.git
 cd GeckoAi-Kalshi
 
-Install dependencies:
+Install:
 
 pip install -r requirements.txt
 
-Create environment file:
+Create environment:
 
 Windows
 
@@ -100,15 +100,13 @@ MODE=
 
 Run GeckoAi
 
-Start:
-
 python GeckoAi.py
 
 Startup flow:
 
 Check GitHub
 ↓
-Pull updates (if available)
+Pull updates
 ↓
 Start main.py
 ↓
@@ -132,8 +130,6 @@ MODE=live_test
 
 Position Sizing
 
-Example balance-step sizing:
-
 Balance	Contracts
 <$5	1
 <$10	2
@@ -154,17 +150,17 @@ data/
 ├── trades.db
 └── trades.json
 
-No manual database setup required.
+No manual setup required.
 
 ⸻
 
 Disclaimer
 
-This software is experimental.
+Experimental software.
 
 Trading involves risk.
 
-Paper performance does not guarantee live results.
+Paper results do not guarantee live performance.
 
 Use responsibly.
 
@@ -176,7 +172,7 @@ Buy me coffee (SOL):
 
 GFAZfcwjddxPJ2HgMbBd8a1Mg7KKCJQgUmKCm8v81Rix
 
-Discord
+Discord:
 https://discord.gg/rZYFMthacs
 
 ⸻
