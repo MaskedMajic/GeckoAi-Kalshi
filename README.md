@@ -1,128 +1,171 @@
-# 🦎 GeckoAi — Kalshi BTC Trading Bot
+🦎 GeckoAi — Kalshi BTC Trading Bot
 
-Automated Bitcoin event trading for Kalshi with paper + live execution, dynamic sizing, Discord alerts, and trade logging.
+Automated Bitcoin event trading for Kalshi with paper + live execution, balance-based sizing, Discord alerts, trade logging, startup updating, and automatic database setup.
 
----
+⸻
 
-## ⚡ Features
+⚡ Features
 
 📈 Automated BTC market participation
 🧪 Paper mode for testing strategies
 💵 Live execution mode
 🧠 Balance-step position sizing
-📊 Trade logging + performance tracking
+📊 SQLite trade logging + performance tracking
 🔔 Discord notifications
+📡 Websocket + REST fallback pricing
+🔄 Auto-update on startup
+🗂️ Automatic database creation
 ⚙️ Configurable risk controls
 
----
+⸻
 
-## Preview
+Preview
 
-```text
 📡 BOT STARTED
-Mode: PAPER
-Balance: $5.00
-Contracts: 3
+Mode: LIVE
+Balance: $47.00
+Contracts: 8
 Sizing: balance_step
-```
-
-```text
+🟢 [WATCH]
+YES=0.90
+NO=0.11
+TIME=04:52
+SIDE=YES
+SRC=STREAM
 ✅ LIVE WIN
 Side: NO
 Entry: 0.91
 Contracts: 5
-
 Trade: +$0.45
+Total: +$17.53
 Balance: $22.53
 Record: 14W / 3L
-```
 
----
+⸻
 
-# Project Structure
+Project Structure
 
-```plaintext
-main.py              → Main execution loop
-strategy.py          → Entry logic
-risk.py              → Position sizing + limits
-live_broker.py       → Live order execution
-paper_broker.py      → Simulated trading
-kalshi_client.py     → Market/API interface
-discord_alerts.py    → Notifications
-trade_logger.py      → Trade persistence
-stats.py             → Metrics
-config.py            → Runtime config
-```
+GeckoAi.py          → Startup launcher + updater
+main.py             → Main trading loop
+strategy.py         → Trade decision logic
+risk.py             → Position sizing
+live_broker.py      → Live execution
+paper_broker.py     → Paper execution
+kalshi_client.py    → Market/API interface
+kalshi_stream.py    → Live websocket prices
+trade_logger.py     → JSON trade logs
+stats.py            → SQLite stats
+discord_alerts.py   → Notifications
+config.py           → Runtime configuration
 
----
+⸻
 
-# Installation
+Installation
 
 Clone:
 
-```bash
 git clone https://github.com/MaskedMajic/GeckoAi-Kalshi.git
 cd GeckoAi-Kalshi
-```
 
-Install:
+Install dependencies:
 
-```bash
 pip install -r requirements.txt
-```
 
 Create environment:
 
-```bash
+Windows:
+
 copy .env.example .env
-```
 
----
+Mac / Linux:
 
-# Run
+cp .env.example .env
+
+Configure:
+
+KALSHI_KEY_ID=
+KALSHI_PRIVATE_KEY_PATH=
+DISCORD_WEBHOOK=
+MODE=
+
+⸻
+
+Startup
+
+Start GeckoAi:
+
+python GeckoAi.py
+
+Startup flow:
+
+Check GitHub
+↓
+Pull updates (if available)
+↓
+Start main.py
+↓
+Create database automatically
+↓
+Begin trading
+
+⸻
+
+Modes
 
 Paper:
 
-```bash
-python main.py
-```
+MODE=paper
 
 Live:
 
-```bash
-MODE=live
-python main.py
-```
+MODE=live_test
 
----
+⸻
 
-# Position Sizing
+Position Sizing
 
 Example balance-step sizing:
 
-| Balance | Contracts |
-| ------- | --------- |
-| <$5     | 1         |
-| <$10    | 2         |
-| <$25    | 3         |
-| <$50    | 5         |
-| <$100   | 8         |
-| $100+   | 10        |
+Balance	Contracts
+<$5	1
+<$10	2
+<$25	3
+<$50	5
+<$100	8
+$100+	10
 
----
+Actual sizing may vary based on config.
 
-# Disclaimer
+⸻
 
-This software is experimental.
+Data Storage
+
+Created automatically:
+
+data/
+├── trades.db
+└── trades.json
+
+No manual database setup required.
+
+⸻
+
+Disclaimer
+
+Experimental software.
 
 Trading involves risk.
 
-Paper results do not guarantee live performance.
+Paper performance does not guarantee live performance.
 
 Use responsibly.
 
-Buy me some Coffee with SOL GFAZfcwjddxPJ2HgMbBd8a1Mg7KKCJQgUmKCm8v81Rix
+⸻
 
----
+☕ Buy me coffee (SOL):
 
-Built by **MaskedMajic**
+GFAZfcwjddxPJ2HgMbBd8a1Mg7KKCJQgUmKCm8v81Rix
+
+⸻
+
+Built by MaskedMajic
