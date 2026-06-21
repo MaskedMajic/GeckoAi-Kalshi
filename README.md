@@ -176,6 +176,9 @@ Buy me coffee (SOL):
 
 GFAZfcwjddxPJ2HgMbBd8a1Mg7KKCJQgUmKCm8v81Rix
 
+Discord
+https://discord.gg/rZYFMthacs
+
 ⸻
 
 Built by MaskedMajic
