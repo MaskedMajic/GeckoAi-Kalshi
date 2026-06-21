@@ -6,32 +6,40 @@ Automated Bitcoin event trading for Kalshi with paper + live execution, balance-
 
 ⚡ Features
 
-📈 Automated BTC market participation
-🧪 Paper mode for testing strategies
-💵 Live execution mode
-🧠 Balance-step position sizing
-📊 SQLite trade logging + performance tracking
-🔔 Discord notifications
-📡 Websocket + REST fallback pricing
-🔄 Auto-update on startup
-🗂️ Automatic database creation
-⚙️ Configurable risk controls
+* 📈 Automated BTC market participation
+* 🧪 Paper trading mode
+* 💵 Live execution mode
+* 🧠 Balance-step position sizing
+* 📊 SQLite trade logging + performance tracking
+* 🔔 Discord notifications
+* 📡 Websocket + REST fallback pricing
+* 🔄 Auto-update on startup
+* 🗂️ Automatic database creation
+* ⚙️ Configurable risk controls
 
 ⸻
 
 Preview
+
+Startup
 
 📡 BOT STARTED
 Mode: LIVE
 Balance: $47.00
 Contracts: 8
 Sizing: balance_step
+
+Monitoring
+
 🟢 [WATCH]
 YES=0.90
 NO=0.11
 TIME=04:52
 SIDE=YES
 SRC=STREAM
+
+Trade Result
+
 ✅ LIVE WIN
 Side: NO
 Entry: 0.91
@@ -47,13 +55,13 @@ Project Structure
 
 GeckoAi.py          → Startup launcher + updater
 main.py             → Main trading loop
-strategy.py         → Trade decision logic
+strategy.py         → Entry logic
 risk.py             → Position sizing
 live_broker.py      → Live execution
 paper_broker.py     → Paper execution
 kalshi_client.py    → Market/API interface
-kalshi_stream.py    → Live websocket prices
-trade_logger.py     → JSON trade logs
+kalshi_stream.py    → Websocket pricing
+trade_logger.py     → JSON trade logging
 stats.py            → SQLite stats
 discord_alerts.py   → Notifications
 config.py           → Runtime configuration
@@ -62,7 +70,7 @@ config.py           → Runtime configuration
 
 Installation
 
-Clone:
+Clone the repo:
 
 git clone https://github.com/MaskedMajic/GeckoAi-Kalshi.git
 cd GeckoAi-Kalshi
@@ -71,13 +79,13 @@ Install dependencies:
 
 pip install -r requirements.txt
 
-Create environment:
+Create environment file:
 
-Windows:
+Windows
 
 copy .env.example .env
 
-Mac / Linux:
+Mac / Linux
 
 cp .env.example .env
 
@@ -90,9 +98,9 @@ MODE=
 
 ⸻
 
-Startup
+Run GeckoAi
 
-Start GeckoAi:
+Start:
 
 python GeckoAi.py
 
@@ -112,11 +120,11 @@ Begin trading
 
 Modes
 
-Paper:
+Paper
 
 MODE=paper
 
-Live:
+Live
 
 MODE=live_test
 
@@ -134,7 +142,7 @@ Balance	Contracts
 <$100	8
 $100+	10
 
-Actual sizing may vary based on config.
+Actual sizing depends on config.
 
 ⸻
 
@@ -152,17 +160,19 @@ No manual database setup required.
 
 Disclaimer
 
-Experimental software.
+This software is experimental.
 
 Trading involves risk.
 
-Paper performance does not guarantee live performance.
+Paper performance does not guarantee live results.
 
 Use responsibly.
 
 ⸻
 
-☕ Buy me coffee (SOL):
+☕ Support
+
+Buy me coffee (SOL):
 
 GFAZfcwjddxPJ2HgMbBd8a1Mg7KKCJQgUmKCm8v81Rix
 
