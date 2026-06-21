@@ -1,35 +1,36 @@
-🦎 GeckoAi — Kalshi BTC Trading Bot
+# 🦎 GeckoAi — Kalshi BTC Trading Bot
 
 Automated Bitcoin event trading for Kalshi with paper + live execution, balance-based sizing, Discord alerts, trade logging, startup updating, and automatic database setup.
 
-⸻
+---
 
-⚡ Features
+## ⚡ Features
 
-* 📈 Automated BTC market participation
-* 🧪 Paper trading mode
-* 💵 Live execution mode
-* 🧠 Balance-step position sizing
-* 📊 SQLite trade logging + performance tracking
-* 🔔 Discord notifications
-* 📡 Websocket + REST fallback pricing
-* 🔄 Auto-update on startup
-* 📁 Automatic database creation
-* ⚙️ Configurable risk controls
+- 📈 Automated BTC market participation
+- 🧪 Paper trading mode
+- 💵 Live execution mode
+- 🧠 Balance-step position sizing
+- 📊 SQLite trade logging + performance tracking
+- 🔔 Discord notifications
+- 📡 Websocket + REST fallback pricing
+- 🔄 Auto-update on startup
+- 📁 Automatic database creation
+- ⚙️ Configurable risk controls
 
-⸻
+---
 
-Preview
+## Preview
 
-Startup
+### Startup
 
+```text
 📡 BOT STARTED
 Mode: LIVE
 Balance: $47.00
 Contracts: 8
 Sizing: balance_step
 
-Monitoring
+### Monitoring
 
 🟢 [WATCH]
 YES=0.90
@@ -38,72 +39,64 @@ TIME=04:52
 SIDE=YES
 SRC=STREAM
 
-Trade Result
+### Trade Result
 
 ✅ LIVE WIN
+
 Side: NO
 Entry: 0.91
 Contracts: 5
+
 Trade: +$0.45
 Total: +$17.53
 Balance: $22.53
 Record: 14W / 3L
 
-⸻
-
-Project Structure
+### Project Structure
 
 GeckoAi.py          → Startup launcher + updater
+
 main.py             → Main trading loop
 strategy.py         → Entry logic
 risk.py             → Position sizing
+
 live_broker.py      → Live execution
 paper_broker.py     → Paper execution
+
 kalshi_client.py    → Market/API interface
 kalshi_stream.py    → Websocket pricing
+
 trade_logger.py     → JSON trade logging
 stats.py            → SQLite stats
+
 discord_alerts.py   → Notifications
 config.py           → Runtime configuration
 
-⸻
-
-Installation
+### Installation
 
 Clone:
-
 git clone https://github.com/MaskedMajic/GeckoAi-Kalshi.git
 cd GeckoAi-Kalshi
 
 Install:
-
 pip install -r requirements.txt
 
-Create environment:
-
-Windows
-
+Windows:
 copy .env.example .env
 
-Mac / Linux
-
+Mac/Linux
 cp .env.example .env
 
 Configure:
-
 KALSHI_KEY_ID=
 KALSHI_PRIVATE_KEY_PATH=
 DISCORD_WEBHOOK=
 MODE=
 
-⸻
-
-Run GeckoAi
-
+### Run GeckoAi
 python GeckoAi.py
 
-Startup flow:
-
+### Start-up Flow
 Check GitHub
 ↓
 Pull updates
@@ -114,47 +107,20 @@ Create database automatically
 ↓
 Begin trading
 
-⸻
+### Modes
 
-Modes
-
-Paper
-
+Paper:
 MODE=paper
 
-Live
-
+Live:
 MODE=live_test
 
-⸻
-
-Position Sizing
-
-Balance	Contracts
-<$5	1
-<$10	2
-<$25	3
-<$50	5
-<$100	8
-$100+	10
-
-Actual sizing depends on config.
-
-⸻
-
-Data Storage
-
-Created automatically:
-
+### Data Storage
 data/
 ├── trades.db
 └── trades.json
 
-No manual setup required.
-
-⸻
-
-Disclaimer
+### Disclaimer
 
 Experimental software.
 
@@ -164,17 +130,11 @@ Paper results do not guarantee live performance.
 
 Use responsibly.
 
-⸻
 
 ☕ Support
 
-Buy me coffee (SOL):
-
+SOL:
 GFAZfcwjddxPJ2HgMbBd8a1Mg7KKCJQgUmKCm8v81Rix
 
 Discord:
 https://discord.gg/rZYFMthacs
-
-⸻
-
-Built by MaskedMajic
