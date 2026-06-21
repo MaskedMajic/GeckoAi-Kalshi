@@ -104,6 +104,16 @@ def calc_price(side, entry):
     )
 
 
+def normalize_fill_price(side, raw_avg_fill):
+    if side == "YES":
+        return raw_avg_fill
+
+    return round(
+        1 - raw_avg_fill,
+        4
+    )
+
+
 def place_live_order(market, side, entry, time_left):
     balance = get_live_balance()
 
@@ -180,11 +190,16 @@ def place_live_order(market, side, entry, time_left):
         )
 
         if fill > 0:
-            avg_fill = float(
+            raw_avg_fill = float(
                 data.get(
                     "average_fill_price",
                     f"{price:.4f}"
                 )
+            )
+
+            avg_fill = normalize_fill_price(
+                side,
+                raw_avg_fill
             )
 
             fee = float(
@@ -199,7 +214,9 @@ def place_live_order(market, side, entry, time_left):
                 2
             )
 
-            avg_fill_display = data.get(
+            avg_fill_display = f"{avg_fill:.4f}"
+
+            raw_avg_fill_display = data.get(
                 "average_fill_price",
                 f"{price:.4f}"
             )
@@ -213,7 +230,8 @@ def place_live_order(market, side, entry, time_left):
                 f"✅ **FILL {attempt}/{MAX_FILL_ATTEMPTS}** | "
                 f"`{market['ticker']}` | {side} @ `{entry:.2f}` | "
                 f"`{fill}`ct | Limit `{price:.2f}` | "
-                f"Avg `{avg_fill_display}` | Fee `{fee_display}`"
+                f"Avg `{avg_fill_display}` | Raw `{raw_avg_fill_display}` | "
+                f"Fee `{fee_display}`"
             )
 
             trade = {
@@ -227,6 +245,7 @@ def place_live_order(market, side, entry, time_left):
                 "contracts": fill,
                 "contract_cost": contract_cost,
                 "avg_fill_price": avg_fill,
+                "raw_avg_fill_price": raw_avg_fill,
                 "limit_price": price,
                 "fees": fee,
                 "btc_entry_price": kalshi_client.get_btc_price(),
