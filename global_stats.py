@@ -10,6 +10,9 @@ BOT_ID_PATH = os.path.join(
     "bot_id.txt"
 )
 
+GLOBAL_STATS_URL = "http://100.98.145.72:8000/trade"
+GLOBAL_STATS_TOKEN = "gecko_mahk_kalshi"
+
 
 def get_bot_id():
     os.makedirs(
@@ -46,14 +49,6 @@ def enabled(trade=None):
             return False
 
     return True
-
-
-def get_url():
-    return getattr(
-        config,
-        "GLOBAL_STATS_URL",
-        ""
-    )
 
 
 def build_payload(trade, close_data):
@@ -110,12 +105,6 @@ def send_trade(trade, close_data):
     if not enabled(trade):
         return False
 
-    url = get_url()
-
-    if not url:
-        print("[GLOBAL STATS] No GLOBAL_STATS_URL set")
-        return False
-
     payload = build_payload(
         trade,
         close_data
@@ -123,8 +112,11 @@ def send_trade(trade, close_data):
 
     try:
         response = requests.post(
-            url,
+            GLOBAL_STATS_URL,
             json=payload,
+            headers={
+                "X-GECKO-TOKEN": GLOBAL_STATS_TOKEN
+            },
             timeout=10
         )
 
@@ -135,7 +127,8 @@ def send_trade(trade, close_data):
             )
             return False
 
-        return False
+        print("[GLOBAL STATS] Live trade sent")
+        return True
 
     except requests.exceptions.RequestException as e:
         print(f"[GLOBAL STATS ERROR] {e}")
