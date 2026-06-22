@@ -10,7 +10,7 @@ BOT_ID_PATH = os.path.join(
     "bot_id.txt"
 )
 
-GLOBAL_STATS_URL = "http://100.98.145.72:8000/trade"
+GLOBAL_STATS_URL = "https://raspberrypi.tailfe26af.ts.net/"
 GLOBAL_STATS_TOKEN = "gecko_mahk_kalshi"
 
 
