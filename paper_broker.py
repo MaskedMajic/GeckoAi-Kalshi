@@ -46,9 +46,7 @@ def open_paper_trade(market, side, entry, time_left):
         "live": False,
     }
 
-    trade_logger.log_trade_open(
-        trade
-    )
+    trade_logger.log_trade_open(trade)
 
     message = (
         f"🚀 **PAPER OPEN** | `{trade['ticker']}`\n"
@@ -84,24 +82,11 @@ def close_paper_trade(trade):
         ),
     )
 
-    contracts = trade.get(
-        "contracts",
-        1
-    )
+    contracts = trade.get("contracts", 1)
+    is_live = trade.get("live", False)
+    btc_close_price = kalshi_client.get_btc_price()
 
-    is_live = trade.get(
-        "live",
-        False
-    )
-
-    btc_close_price = (
-        kalshi_client.get_btc_price()
-    )
-
-    won = (
-        side ==
-        winning_side
-    )
+    won = side == winning_side
 
     entry_cost = float(
         trade.get(
@@ -110,76 +95,33 @@ def close_paper_trade(trade):
         )
     )
 
-    exit_contract_value = (
-        1
-        if won
-        else 0
+    exit_contract_value = 1 if won else 0
+
+    pnl = contracts * (
+        exit_contract_value - entry_cost
     )
 
-    pnl = (
-        contracts
-        *
-        (
-            exit_contract_value
-            -
-            entry_cost
-        )
-    )
+    result = "WIN" if won else "LOSS"
 
-    result = (
-        "WIN"
-        if won
-        else "LOSS"
-    )
-
-    new_bankroll = (
-        bankroll
-        +
-        pnl
-    )
+    new_bankroll = bankroll + pnl
 
     stats.save_trade(
         market=trade["ticker"],
         side=side,
         entry=entry,
         result=result,
-        pnl=round(
-            pnl,
-            2
-        ),
-        bankroll=round(
-            new_bankroll,
-            2
-        ),
+        pnl=round(pnl, 2),
+        bankroll=round(new_bankroll, 2),
     )
 
     close_data = {
-        "closed_at":
-            trade_logger.now_iso(),
-
-        "btc_close_price":
-            btc_close_price,
-
-        "exit_contract_value":
-            exit_contract_value,
-
-        "winning_side":
-            winning_side,
-
-        "result":
-            result,
-
-        "pnl":
-            round(
-                pnl,
-                2
-            ),
-
-        "bankroll_after":
-            round(
-                new_bankroll,
-                2
-            ),
+        "closed_at": trade_logger.now_iso(),
+        "btc_close_price": btc_close_price,
+        "exit_contract_value": exit_contract_value,
+        "winning_side": winning_side,
+        "result": result,
+        "pnl": round(pnl, 2),
+        "bankroll_after": round(new_bankroll, 2),
     }
 
     trade_logger.log_trade_close(
@@ -193,6 +135,14 @@ def close_paper_trade(trade):
     )
 
     summary = stats.get_summary()
+    streak = stats.get_streak()
+
+    if streak["current_type"] == "WIN":
+        streak_label = f"W{streak['current_count']}"
+    elif streak["current_type"] == "LOSS":
+        streak_label = f"L{streak['current_count']}"
+    else:
+        streak_label = "-"
 
     total_pnl = (
         summary["latest_bankroll"]
@@ -200,17 +150,8 @@ def close_paper_trade(trade):
         config.STARTING_BANKROLL
     )
 
-    emoji = (
-        "✅"
-        if won
-        else "❌"
-    )
-
-    mode = (
-        "LIVE"
-        if is_live
-        else "PAPER"
-    )
+    emoji = "✅" if won else "❌"
+    mode = "LIVE" if is_live else "PAPER"
 
     message = (
         f"{emoji} "
@@ -225,13 +166,13 @@ def close_paper_trade(trade):
         f"Trade: `${pnl:+.2f}` | "
         f"Total: `${total_pnl:+.2f}` | "
         f"Balance: `${summary['latest_bankroll']:.2f}` | "
-        f"Record: `{summary['wins']}W / {summary['losses']}L`"
+        f"Record: `{summary['wins']}W / {summary['losses']}L`\n"
+
+        f"🔥 Streak: `{streak_label}`"
     )
 
     print(message)
 
-    discord_alerts.send_message(
-        message
-    )
+    discord_alerts.send_message(message)
 
     return True
