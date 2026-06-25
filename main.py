@@ -24,11 +24,7 @@ RESET = "\033[0m"
 def time_left(close):
     dt = datetime.fromisoformat(close.replace("Z", "+00:00"))
     seconds = max(0, int((dt - datetime.now(timezone.utc)).total_seconds()))
-
-    mm = seconds // 60
-    ss = seconds % 60
-
-    return mm, ss, seconds
+    return seconds // 60, seconds % 60, seconds
 
 
 def closed(close):
@@ -37,7 +33,7 @@ def closed(close):
 
 
 def repaint(message):
-    sys.stdout.write("\r" + message + " " * 25)
+    sys.stdout.write("\r" + message + " " * 120)
     sys.stdout.flush()
 
 
@@ -84,6 +80,7 @@ preview_contracts = risk.get_contracts(starting_balance, 0.90)
 display_mode = "LIVE" if config.MODE == "live_test" else config.MODE.upper()
 
 startup = (
+    "🚀 Starting GeckoAi...\n\n"
     "📡 BOT STARTED\n"
     f"Mode: {display_mode}\n"
     f"Balance: ${starting_balance:.2f}\n"
@@ -119,12 +116,7 @@ while True:
 
         if live:
 
-            current = (
-                live["yes"]
-                if open_trade["side"] == "YES"
-                else live["no"]
-            )
-
+            current = live["yes"] if open_trade["side"] == "YES" else live["no"]
             mm, ss, _ = time_left(open_trade["close"])
 
             repaint(
@@ -136,19 +128,14 @@ while True:
                 f"SRC={live['source']}"
             )
 
-            move = round(
-                abs(current - open_trade["entry"]),
-                2
-            )
+            move = round(abs(current - open_trade["entry"]), 2)
 
-            # Terminal only. No Discord spam.
             if move >= 0.10 and move != last_move:
 
                 log(
-                    f"{YELLOW}📊 UPDATE{RESET} | "
+                    f"{YELLOW}📊 [MOVE]{RESET} "
                     f"{open_trade['side']} | "
-                    f"{open_trade['entry']:.2f} → "
-                    f"{current:.2f}"
+                    f"{open_trade['entry']:.2f} → {current:.2f}"
                 )
 
                 last_move = move
@@ -159,7 +146,6 @@ while True:
     market = kalshi_client.get_market()
 
     if not market:
-
         repaint(f"{RED}🔴 [WAIT MARKET]{RESET}")
         kalshi_stream.stop()
         stream_ticker = None
@@ -168,19 +154,14 @@ while True:
 
     if stream_ticker != market["ticker"]:
 
-        log(
+        repaint(
             f"{PURPLE}🟣 [ROLLOVER]{RESET} "
-            f"Switching stream to {market['ticker']}"
+            f"{market['ticker']}"
         )
 
         kalshi_stream.stop()
         stream_ticker = market["ticker"]
         kalshi_stream.start(stream_ticker)
-
-        repaint(
-            f"{BLUE}🔵 [WAIT PRICE]{RESET} "
-            f"Waiting for first stream tick..."
-        )
 
         time.sleep(2)
         continue
@@ -188,8 +169,7 @@ while True:
     live_price = get_price(market)
 
     if not live_price:
-
-        repaint(f"{BLUE}🔵 [WAIT PRICE]{RESET}")
+        repaint(f"{BLUE}🔵 [WAIT PRICE]{RESET} Waiting for ticks...")
         time.sleep(2)
         continue
 
@@ -210,42 +190,50 @@ while True:
         side = "NO"
         entry = no
 
+    allowed = False
+    reason = "-"
+
+    if side:
+        allowed, reason = strategy.should_trade(entry, time_left_minutes)
+
+    decision = "ENTER" if allowed else "WAIT"
+
     repaint(
         f"{GREEN}🟢 [WATCH]{RESET} "
         f"YES={yes:.2f} | "
         f"NO={no:.2f} | "
         f"TIME={mm:02}:{ss:02} | "
         f"SIDE={side or '-'} | "
+        f"{decision} | "
+        f"{reason} | "
         f"SRC={live_price['source']}"
     )
 
-    if side:
+    if side and allowed:
 
-        allowed, reason = strategy.should_trade(
-            entry,
-            time_left_minutes
+        log(
+            f"{BLUE}⚡ [ENTRY]{RESET} "
+            f"{side} | "
+            f"PRICE={entry:.2f} | "
+            f"TIME={mm:02}:{ss:02}"
         )
 
-        log(f"[DECISION] {allowed} | {reason}")
+        if config.MODE == "live_test":
 
-        if allowed:
+            open_trade = live_broker.place_live_order(
+                market,
+                side,
+                entry,
+                time_left_minutes,
+            )
 
-            if config.MODE == "live_test":
+        else:
 
-                open_trade = live_broker.place_live_order(
-                    market,
-                    side,
-                    entry,
-                    time_left_minutes,
-                )
-
-            else:
-
-                open_trade = paper_broker.open_paper_trade(
-                    market,
-                    side,
-                    entry,
-                    time_left_minutes,
-                )
+            open_trade = paper_broker.open_paper_trade(
+                market,
+                side,
+                entry,
+                time_left_minutes,
+            )
 
     time.sleep(1)
