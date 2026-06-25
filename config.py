@@ -5,6 +5,7 @@ load_dotenv()
 
 
 def env_bool(name, default=True):
+
     value = os.getenv(
         name,
         str(default)
@@ -76,6 +77,31 @@ LIVE_MAX_CONTRACTS = int(
         10
     )
 )
+
+# Balance → Contracts
+BALANCE_STEPS = [
+
+    (5, 1),
+
+    (10, 2),
+
+    (25, 3),
+
+    (30, 5),
+
+    (40, 6),
+
+    (50, 8),
+
+    (75, 9),
+
+    (100, 12),
+
+    (250, 20),
+
+    (500, 30),
+
+]
 
 
 # ==========================
