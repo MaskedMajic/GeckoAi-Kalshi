@@ -89,6 +89,45 @@ def get_price(market):
     return None
 
 
+def track_trade_price(trade, current):
+    current = round(float(current), 4)
+
+    if "price_path" not in trade:
+        trade["price_path"] = []
+
+    if "lowest_seen" not in trade:
+        trade["lowest_seen"] = current
+
+    if "highest_seen" not in trade:
+        trade["highest_seen"] = current
+
+    trade["price_path"].append(current)
+
+    trade["lowest_seen"] = min(
+        trade["lowest_seen"],
+        current
+    )
+
+    trade["highest_seen"] = max(
+        trade["highest_seen"],
+        current
+    )
+
+    trade["worst_against_entry"] = round(
+        trade["entry"] - trade["lowest_seen"],
+        4
+    )
+
+    trade["best_in_favor_entry"] = round(
+        trade["highest_seen"] - trade["entry"],
+        4
+    )
+
+    trade["price_path_points"] = len(
+        trade["price_path"]
+    )
+
+
 def dashboard_header():
     summary = stats.get_summary()
 
@@ -198,6 +237,11 @@ while True:
                 else live["no"]
             )
 
+            track_trade_price(
+                open_trade,
+                current
+            )
+
             mm, ss, _ = time_left(open_trade["close"])
 
             repaint(
@@ -208,6 +252,10 @@ while True:
                 f"Side: {open_trade['side']}\n"
                 f"Entry: {open_trade['entry']:.2f}\n"
                 f"Now: {current:.2f}\n"
+                f"Lowest Seen: {open_trade['lowest_seen']:.2f}\n"
+                f"Highest Seen: {open_trade['highest_seen']:.2f}\n"
+                f"Worst Against: {open_trade['worst_against_entry']:.2f}\n"
+                f"Path Points: {open_trade['price_path_points']}\n"
                 f"Time Left: {mm:02}:{ss:02}\n"
                 f"Source: {live['source']}\n"
             )
