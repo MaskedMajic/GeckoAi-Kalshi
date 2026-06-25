@@ -1,3 +1,4 @@
+import sys
 import time
 import uuid
 import base64
@@ -20,6 +21,11 @@ ORDER_PATH = "/trade-api/v2/portfolio/events/orders"
 BALANCE_PATH = "/trade-api/v2/portfolio/balance"
 
 MAX_FILL_ATTEMPTS = 5
+
+
+def repaint(message):
+    sys.stdout.write("\r" + message + " " * 140)
+    sys.stdout.flush()
 
 
 def load_key():
@@ -68,7 +74,9 @@ def get_live_balance():
         )
 
         if response.status_code != 200:
-            print(f"[BALANCE ERROR] {response.status_code} | {response.text}")
+            repaint(
+                f"🔴 [BALANCE ERROR] Status={response.status_code}"
+            )
             return 0
 
         data = response.json()
@@ -81,7 +89,7 @@ def get_live_balance():
         )
 
     except requests.exceptions.RequestException as e:
-        print(f"[BALANCE ERROR] {e}")
+        repaint(f"🔴 [BALANCE ERROR] {e}")
         return 0
 
 
@@ -130,6 +138,7 @@ def place_live_order(market, side, entry, time_left):
         return None
 
     for attempt in range(1, MAX_FILL_ATTEMPTS + 1):
+
         order_side, price = calc_price(
             side,
             entry
@@ -145,9 +154,14 @@ def place_live_order(market, side, entry, time_left):
             "self_trade_prevention_type": "taker_at_cross",
         }
 
-        print()
-        print(f"[LIVE] {attempt}/{MAX_FILL_ATTEMPTS}")
-        print(body)
+        repaint(
+            f"⚡ [ORDER] "
+            f"{attempt}/{MAX_FILL_ATTEMPTS} | "
+            f"{side} | "
+            f"Entry={entry:.2f} | "
+            f"Limit={price:.2f} | "
+            f"Contracts={contracts}"
+        )
 
         try:
             response = requests.post(
@@ -158,19 +172,24 @@ def place_live_order(market, side, entry, time_left):
             )
 
         except requests.exceptions.RequestException as e:
-            print(f"[ORDER ERROR] {e}")
+            repaint(f"🔴 [ORDER ERROR] {e}")
+
             discord_alerts.send_message(
                 f"❌ **ORDER ERROR {attempt}/{MAX_FILL_ATTEMPTS}** | "
                 f"`{market['ticker']}` | {side} @ `{entry:.2f}` | "
                 f"`{contracts}`ct | `{e}`"
             )
+
             time.sleep(1)
             continue
 
-        print(response.status_code)
-        print(response.text)
-
         if response.status_code not in [200, 201]:
+            repaint(
+                f"🔴 [LIVE FAILED] "
+                f"{attempt}/{MAX_FILL_ATTEMPTS} | "
+                f"Status={response.status_code}"
+            )
+
             discord_alerts.send_message(
                 f"❌ **LIVE FAILED {attempt}/{MAX_FILL_ATTEMPTS}** | "
                 f"`{market['ticker']}` | {side} @ `{entry:.2f}` | "
@@ -216,22 +235,25 @@ def place_live_order(market, side, entry, time_left):
 
             avg_fill_display = f"{avg_fill:.4f}"
 
-            raw_avg_fill_display = data.get(
-                "average_fill_price",
-                f"{price:.4f}"
-            )
-
             fee_display = data.get(
                 "average_fee_paid",
                 "0"
             )
 
+            repaint(
+                f"✅ [FILL] "
+                f"{side} | "
+                f"Avg={avg_fill:.4f} | "
+                f"Contracts={fill:.0f} | "
+                f"Cost=${contract_cost:.2f} | "
+                f"Fee={fee_display}"
+            )
+
             discord_alerts.send_message(
                 f"✅ **FILL {attempt}/{MAX_FILL_ATTEMPTS}** | "
                 f"`{market['ticker']}` | {side} @ `{entry:.2f}` | "
-                f"`{fill}`ct | Limit `{price:.2f}` | "
-                f"Avg `{avg_fill_display}` | Raw `{raw_avg_fill_display}` | "
-                f"Fee `{fee_display}`"
+                f"`{fill:.0f}`ct | Limit `{price:.2f}` | "
+                f"Avg `{avg_fill_display}` | Fee `{fee_display}`"
             )
 
             trade = {
@@ -261,7 +283,12 @@ def place_live_order(market, side, entry, time_left):
 
             return trade
 
-        print("NO FILL")
+        repaint(
+            f"⚪ [NO FILL] "
+            f"{attempt}/{MAX_FILL_ATTEMPTS} | "
+            f"{side} | "
+            f"Limit={price:.2f}"
+        )
 
         discord_alerts.send_message(
             f"⚪ **NO FILL {attempt}/{MAX_FILL_ATTEMPTS}** | "
@@ -285,6 +312,12 @@ def place_live_order(market, side, entry, time_left):
     discord_alerts.send_message(
         f"⚪ **FAILED AFTER {MAX_FILL_ATTEMPTS}** | "
         f"`{market['ticker']}` | {side}"
+    )
+
+    repaint(
+        f"⚪ [FAILED] "
+        f"No fill after {MAX_FILL_ATTEMPTS} attempts | "
+        f"{side}"
     )
 
     return None
