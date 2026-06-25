@@ -32,17 +32,36 @@ def closed(close):
     return seconds <= 0
 
 
+def fmt_runtime(seconds):
+    h = seconds // 3600
+    m = (seconds % 3600) // 60
+    s = seconds % 60
+    return f"{h:02}:{m:02}:{s:02}"
+
+
 def repaint(message):
     os.system("cls")
     print(message, end="", flush=True)
+
+
+def safe_streak():
+    try:
+        streak = stats.get_streak()
+        if streak["current_type"] == "WIN":
+            return f"W{streak['current_count']}"
+        if streak["current_type"] == "LOSS":
+            return f"L{streak['current_count']}"
+    except Exception:
+        pass
+
+    return "-"
 
 
 def get_starting_balance():
     if config.MODE == "live_test":
         return strategy.get_live_balance()
 
-    summary = stats.get_summary()
-    return summary["latest_bankroll"]
+    return stats.get_latest_bankroll(config.STARTING_BANKROLL)
 
 
 def get_price(market):
@@ -67,18 +86,95 @@ def get_price(market):
     return None
 
 
+def dashboard_header():
+    summary = stats.get_summary()
+
+    runtime = fmt_runtime(
+        int(time.time() - session_started_at)
+    )
+
+    session_trades = (
+        summary["total_trades"]
+        -
+        start_summary["total_trades"]
+    )
+
+    session_wins = (
+        summary["wins"]
+        -
+        start_summary["wins"]
+    )
+
+    session_losses = (
+        summary["losses"]
+        -
+        start_summary["losses"]
+    )
+
+    session_pnl = (
+        summary["total_pnl"]
+        -
+        start_summary["total_pnl"]
+    )
+
+    current_balance = (
+        summary["latest_bankroll"]
+        if summary["latest_bankroll"] > 0
+        else starting_balance
+    )
+
+    current_contracts = risk.get_contracts(
+        current_balance,
+        0.90
+    )
+
+    total_pnl = (
+        current_balance
+        -
+        config.STARTING_BANKROLL
+    )
+
+    return (
+        f"{GREEN}=============================={RESET}\n"
+        f"{GREEN}       GECKOAI KALSHI{RESET}\n"
+        f"{GREEN}=============================={RESET}\n\n"
+
+        f"Mode: {display_mode}\n"
+        f"Start Balance: ${starting_balance:.2f}\n"
+        f"Balance: ${current_balance:.2f}\n"
+        f"Contracts: {current_contracts}\n"
+        f"Sizing: {config.SIZING_MODE}\n\n"
+
+        f"Record: {summary['wins']}W / {summary['losses']}L\n"
+        f"Win Rate: {summary['win_rate']:.2f}%\n"
+        f"Total PnL: ${total_pnl:+.2f}\n"
+        f"Streak: {safe_streak()}\n\n"
+
+        f"Session Runtime: {runtime}\n"
+        f"Session Trades: {session_trades}\n"
+        f"Session W/L: {session_wins}W / {session_losses}L\n"
+        f"Session PnL: ${session_pnl:+.2f}\n\n"
+    )
+
+
 stats.init_db()
 
-starting_balance = get_starting_balance()
-preview_contracts = risk.get_contracts(starting_balance, 0.90)
+session_started_at = time.time()
 
-display_mode = "LIVE" if config.MODE == "live_test" else config.MODE.upper()
+starting_balance = get_starting_balance()
+start_summary = stats.get_summary()
+
+display_mode = (
+    "LIVE"
+    if config.MODE == "live_test"
+    else config.MODE.upper()
+)
 
 startup = (
     "📡 BOT STARTED\n"
     f"Mode: {display_mode}\n"
     f"Balance: ${starting_balance:.2f}\n"
-    f"Contracts: {preview_contracts}\n"
+    f"Contracts: {risk.get_contracts(starting_balance, 0.90)}\n"
     f"Sizing: {config.SIZING_MODE}"
 )
 
@@ -115,13 +211,14 @@ while True:
             mm, ss, _ = time_left(open_trade["close"])
 
             repaint(
+                dashboard_header()
+                +
                 f"{YELLOW}🟡 ACTIVE TRADE{RESET}\n\n"
-                f"Mode: {display_mode}\n"
                 f"Ticker: {open_trade['ticker']}\n"
                 f"Side: {open_trade['side']}\n"
                 f"Entry: {open_trade['entry']:.2f}\n"
                 f"Now: {current:.2f}\n"
-                f"Time: {mm:02}:{ss:02}\n"
+                f"Time Left: {mm:02}:{ss:02}\n"
                 f"Source: {live['source']}\n"
             )
 
@@ -133,7 +230,9 @@ while True:
     if not market:
 
         repaint(
-            f"{RED}🔴 WAITING MARKET{RESET}\n"
+            dashboard_header()
+            +
+            f"{RED}🔴 WAITING FOR MARKET{RESET}\n"
         )
 
         kalshi_stream.stop()
@@ -150,6 +249,8 @@ while True:
         kalshi_stream.start(stream_ticker)
 
         repaint(
+            dashboard_header()
+            +
             f"{PURPLE}🟣 STREAM ROLLOVER{RESET}\n\n"
             f"Ticker: {stream_ticker}\n"
             f"Waiting for stream ticks...\n"
@@ -163,9 +264,10 @@ while True:
     if not live_price:
 
         repaint(
-            f"{BLUE}🔵 WAITING PRICE{RESET}\n\n"
+            dashboard_header()
+            +
+            f"{BLUE}🔵 WAITING FOR PRICE{RESET}\n\n"
             f"Ticker: {market['ticker']}\n"
-            f"Waiting for ticks...\n"
         )
 
         time.sleep(2)
@@ -199,15 +301,13 @@ while True:
     decision = "ENTER" if allowed else "WAIT"
 
     repaint(
-        f"{GREEN}🟢 GECKOAI LIVE{RESET}\n\n"
-        f"Mode: {display_mode}\n"
-        f"Balance: ${starting_balance:.2f}\n"
-        f"Contracts: {preview_contracts}\n"
-        f"Sizing: {config.SIZING_MODE}\n\n"
+        dashboard_header()
+        +
+        f"{GREEN}🟢 WATCH{RESET}\n\n"
         f"Ticker: {market['ticker']}\n"
         f"YES: {yes:.2f}\n"
         f"NO: {no:.2f}\n"
-        f"Time: {mm:02}:{ss:02}\n"
+        f"Time Left: {mm:02}:{ss:02}\n"
         f"Side: {side}\n"
         f"Status: {decision}\n"
         f"Reason: {reason}\n"
@@ -215,6 +315,16 @@ while True:
     )
 
     if entry and allowed:
+
+        repaint(
+            dashboard_header()
+            +
+            f"{BLUE}⚡ ENTRY SIGNAL{RESET}\n\n"
+            f"Ticker: {market['ticker']}\n"
+            f"Side: {side}\n"
+            f"Entry: {entry:.2f}\n"
+            f"Time Left: {mm:02}:{ss:02}\n"
+        )
 
         if config.MODE == "live_test":
 
