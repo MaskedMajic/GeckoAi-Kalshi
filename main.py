@@ -99,9 +99,13 @@ open_trade = None
 last_move = None
 stream_ticker = None
 
+
 while True:
+
     if open_trade:
+
         if closed(open_trade["close"]):
+
             settled = paper_broker.close_paper_trade(open_trade)
 
             if settled:
@@ -114,7 +118,13 @@ while True:
         live = get_price(open_trade)
 
         if live:
-            current = live["yes"] if open_trade["side"] == "YES" else live["no"]
+
+            current = (
+                live["yes"]
+                if open_trade["side"] == "YES"
+                else live["no"]
+            )
+
             mm, ss, _ = time_left(open_trade["close"])
 
             repaint(
@@ -126,19 +136,19 @@ while True:
                 f"SRC={live['source']}"
             )
 
-            move = round(abs(current - open_trade["entry"]), 2)
+            move = round(
+                abs(current - open_trade["entry"]),
+                2
+            )
 
+            # Terminal only. No Discord spam.
             if move >= 0.10 and move != last_move:
+
                 log(
                     f"{YELLOW}📊 UPDATE{RESET} | "
                     f"{open_trade['side']} | "
-                    f"{open_trade['entry']:.2f} → {current:.2f}"
-                )
-
-                discord_alerts.send_message(
-                    f"📊 UPDATE | "
-                    f"{open_trade['side']} | "
-                    f"{open_trade['entry']:.2f} → {current:.2f}"
+                    f"{open_trade['entry']:.2f} → "
+                    f"{current:.2f}"
                 )
 
                 last_move = move
@@ -149,6 +159,7 @@ while True:
     market = kalshi_client.get_market()
 
     if not market:
+
         repaint(f"{RED}🔴 [WAIT MARKET]{RESET}")
         kalshi_stream.stop()
         stream_ticker = None
@@ -156,25 +167,35 @@ while True:
         continue
 
     if stream_ticker != market["ticker"]:
-        log(f"{PURPLE}🟣 [ROLLOVER]{RESET} Switching stream to {market['ticker']}")
+
+        log(
+            f"{PURPLE}🟣 [ROLLOVER]{RESET} "
+            f"Switching stream to {market['ticker']}"
+        )
 
         kalshi_stream.stop()
         stream_ticker = market["ticker"]
         kalshi_stream.start(stream_ticker)
 
-        repaint(f"{BLUE}🔵 [WAIT PRICE]{RESET} Waiting for first stream tick...")
+        repaint(
+            f"{BLUE}🔵 [WAIT PRICE]{RESET} "
+            f"Waiting for first stream tick..."
+        )
+
         time.sleep(2)
         continue
 
     live_price = get_price(market)
 
     if not live_price:
+
         repaint(f"{BLUE}🔵 [WAIT PRICE]{RESET}")
         time.sleep(2)
         continue
 
     yes = live_price["yes"]
     no = live_price["no"]
+
     mm, ss, seconds_left = time_left(market["close"])
     time_left_minutes = seconds_left / 60
 
@@ -184,6 +205,7 @@ while True:
     if config.ENTRY_MIN <= yes <= config.ENTRY_MAX:
         side = "YES"
         entry = yes
+
     elif config.ENTRY_MIN <= no <= config.ENTRY_MAX:
         side = "NO"
         entry = no
@@ -198,18 +220,27 @@ while True:
     )
 
     if side:
-        allowed, reason = strategy.should_trade(entry, time_left_minutes)
+
+        allowed, reason = strategy.should_trade(
+            entry,
+            time_left_minutes
+        )
+
         log(f"[DECISION] {allowed} | {reason}")
 
         if allowed:
+
             if config.MODE == "live_test":
+
                 open_trade = live_broker.place_live_order(
                     market,
                     side,
                     entry,
                     time_left_minutes,
                 )
+
             else:
+
                 open_trade = paper_broker.open_paper_trade(
                     market,
                     side,
