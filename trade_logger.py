@@ -48,9 +48,42 @@ def _write_log(records):
     os.replace(temp_path, TRADE_LOG_PATH)
 
 
+def _trade_movement_fields(trade):
+    entry = trade.get("entry")
+    lowest_seen = trade.get("lowest_seen")
+    highest_seen = trade.get("highest_seen")
+    price_path = trade.get("price_path", [])
+
+    worst_against_entry = None
+    best_in_favor_entry = None
+
+    if entry is not None and lowest_seen is not None:
+        worst_against_entry = round(
+            entry - lowest_seen,
+            4
+        )
+
+    if entry is not None and highest_seen is not None:
+        best_in_favor_entry = round(
+            highest_seen - entry,
+            4
+        )
+
+    return {
+        "lowest_seen": lowest_seen,
+        "highest_seen": highest_seen,
+        "worst_against_entry": worst_against_entry,
+        "best_in_favor_entry": best_in_favor_entry,
+        "price_path": price_path,
+        "price_path_points": len(price_path),
+    }
+
+
 def log_trade_open(trade):
     trade_id = trade.get("trade_id") or str(uuid.uuid4())
     trade["trade_id"] = trade_id
+
+    movement = _trade_movement_fields(trade)
 
     records = _read_log()
     records.append({
@@ -78,6 +111,13 @@ def log_trade_open(trade):
         "result": None,
         "pnl": None,
         "closed_at": None,
+
+        "lowest_seen": movement["lowest_seen"],
+        "highest_seen": movement["highest_seen"],
+        "worst_against_entry": movement["worst_against_entry"],
+        "best_in_favor_entry": movement["best_in_favor_entry"],
+        "price_path": movement["price_path"],
+        "price_path_points": movement["price_path_points"],
     })
 
     _write_log(records)
@@ -87,6 +127,18 @@ def log_trade_open(trade):
 def log_trade_close(trade, close_data):
     trade_id = trade.get("trade_id") or str(uuid.uuid4())
     records = _read_log()
+
+    movement = _trade_movement_fields(trade)
+
+    close_data = {
+        **close_data,
+        "lowest_seen": movement["lowest_seen"],
+        "highest_seen": movement["highest_seen"],
+        "worst_against_entry": movement["worst_against_entry"],
+        "best_in_favor_entry": movement["best_in_favor_entry"],
+        "price_path": movement["price_path"],
+        "price_path_points": movement["price_path_points"],
+    }
 
     for record in reversed(records):
         if record.get("trade_id") == trade_id:
