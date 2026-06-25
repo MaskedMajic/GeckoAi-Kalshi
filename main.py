@@ -47,10 +47,13 @@ def repaint(message):
 def safe_streak():
     try:
         streak = stats.get_streak()
+
         if streak["current_type"] == "WIN":
             return f"W{streak['current_count']}"
+
         if streak["current_type"] == "LOSS":
             return f"L{streak['current_count']}"
+
     except Exception:
         pass
 
@@ -93,29 +96,10 @@ def dashboard_header():
         int(time.time() - session_started_at)
     )
 
-    session_trades = (
-        summary["total_trades"]
-        -
-        start_summary["total_trades"]
-    )
-
-    session_wins = (
-        summary["wins"]
-        -
-        start_summary["wins"]
-    )
-
-    session_losses = (
-        summary["losses"]
-        -
-        start_summary["losses"]
-    )
-
-    session_pnl = (
-        summary["total_pnl"]
-        -
-        start_summary["total_pnl"]
-    )
+    session_trades = summary["total_trades"] - start_summary["total_trades"]
+    session_wins = summary["wins"] - start_summary["wins"]
+    session_losses = summary["losses"] - start_summary["losses"]
+    session_pnl = summary["total_pnl"] - start_summary["total_pnl"]
 
     current_balance = (
         summary["latest_bankroll"]
@@ -128,27 +112,25 @@ def dashboard_header():
         0.90
     )
 
-    total_pnl = (
-        current_balance
-        -
-        config.STARTING_BANKROLL
-    )
+    total_pnl = current_balance - config.STARTING_BANKROLL
 
     return (
         f"{GREEN}=============================={RESET}\n"
         f"{GREEN}       GECKOAI KALSHI{RESET}\n"
         f"{GREEN}=============================={RESET}\n\n"
 
-        f"Mode: {display_mode}\n"
-        f"Start Balance: ${starting_balance:.2f}\n"
-        f"Balance: ${current_balance:.2f}\n"
-        f"Contracts: {current_contracts}\n"
-        f"Sizing: {config.SIZING_MODE}\n\n"
-
+        f"Mode: {display_mode:<18}"
         f"Record: {summary['wins']}W / {summary['losses']}L\n"
+
+        f"Balance: ${current_balance:<14.2f}"
         f"Win Rate: {summary['win_rate']:.2f}%\n"
-        f"Total PnL: ${total_pnl:+.2f}\n"
+
+        f"Contracts: {current_contracts:<12}"
         f"Streak: {safe_streak()}\n\n"
+
+        f"Sizing: {config.SIZING_MODE}\n"
+        f"PnL: ${total_pnl:+.2f}\n"
+        f"Start: ${starting_balance:.2f}\n\n"
 
         f"Session Runtime: {runtime}\n"
         f"Session Trades: {session_trades}\n"
@@ -160,7 +142,6 @@ def dashboard_header():
 stats.init_db()
 
 session_started_at = time.time()
-
 starting_balance = get_starting_balance()
 start_summary = stats.get_summary()
 
@@ -189,7 +170,6 @@ while True:
     if open_trade:
 
         if closed(open_trade["close"]):
-
             settled = paper_broker.close_paper_trade(open_trade)
 
             if settled:
@@ -201,7 +181,6 @@ while True:
         live = get_price(open_trade)
 
         if live:
-
             current = (
                 live["yes"]
                 if open_trade["side"] == "YES"
@@ -228,7 +207,6 @@ while True:
     market = kalshi_client.get_market()
 
     if not market:
-
         repaint(
             dashboard_header()
             +
@@ -242,7 +220,6 @@ while True:
         continue
 
     if stream_ticker != market["ticker"]:
-
         stream_ticker = market["ticker"]
 
         kalshi_stream.stop()
@@ -262,7 +239,6 @@ while True:
     live_price = get_price(market)
 
     if not live_price:
-
         repaint(
             dashboard_header()
             +
@@ -315,7 +291,6 @@ while True:
     )
 
     if entry and allowed:
-
         repaint(
             dashboard_header()
             +
@@ -327,7 +302,6 @@ while True:
         )
 
         if config.MODE == "live_test":
-
             open_trade = live_broker.place_live_order(
                 market,
                 side,
@@ -336,7 +310,6 @@ while True:
             )
 
         else:
-
             open_trade = paper_broker.open_paper_trade(
                 market,
                 side,
