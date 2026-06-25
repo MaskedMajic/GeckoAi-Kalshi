@@ -119,18 +119,29 @@ def dashboard_header():
         f"{GREEN}       GECKOAI KALSHI{RESET}\n"
         f"{GREEN}=============================={RESET}\n\n"
 
-        f"Mode: {display_mode:<18}"
-        f"Record: {summary['wins']}W / {summary['losses']}L\n"
+        f"{'Mode:':<10}"
+        f"{display_mode:<14}"
+        f"{'Record:':<10}"
+        f"{summary['wins']}W / {summary['losses']}L\n"
 
-        f"Balance: ${current_balance:<14.2f}"
-        f"Win Rate: {summary['win_rate']:.2f}%\n"
+        f"{'Balance:':<10}"
+        f"${current_balance:<13.2f}"
+        f"{'Win Rate:':<10}"
+        f"{summary['win_rate']:.2f}%\n"
 
-        f"Contracts: {current_contracts:<12}"
-        f"Streak: {safe_streak()}\n\n"
+        f"{'Contracts:':<10}"
+        f"{current_contracts:<13}"
+        f"{'Streak:':<10}"
+        f"{safe_streak()}\n\n"
 
-        f"Sizing: {config.SIZING_MODE}\n"
-        f"PnL: ${total_pnl:+.2f}\n"
-        f"Start: ${starting_balance:.2f}\n\n"
+        f"{'Sizing:':<10}"
+        f"{config.SIZING_MODE}\n"
+
+        f"{'PnL:':<10}"
+        f"${total_pnl:+.2f}\n"
+
+        f"{'Start:':<10}"
+        f"${starting_balance:.2f}\n\n"
 
         f"Session Runtime: {runtime}\n"
         f"Session Trades: {session_trades}\n"
