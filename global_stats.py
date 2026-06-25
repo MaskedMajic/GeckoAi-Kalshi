@@ -10,8 +10,17 @@ BOT_ID_PATH = os.path.join(
     "bot_id.txt"
 )
 
-GLOBAL_STATS_URL = "https://raspberrypi.tailfe26af.ts.net/trade"
-GLOBAL_STATS_TOKEN = "gecko_mahk_kalshi"
+GLOBAL_STATS_URL = getattr(
+    config,
+    "GLOBAL_STATS_URL",
+    "https://raspberrypi.tailfe26af.ts.net/trade"
+)
+
+GLOBAL_STATS_TOKEN = getattr(
+    config,
+    "GLOBAL_STATS_TOKEN",
+    "gecko_mahk_kalshi"
+)
 
 
 def get_bot_id():
@@ -98,6 +107,13 @@ def build_payload(trade, close_data):
         payload["limit_price"] = trade.get("limit_price")
         payload["raw_avg_fill_price"] = trade.get("raw_avg_fill_price")
 
+        payload["lowest_seen"] = trade.get("lowest_seen")
+        payload["highest_seen"] = trade.get("highest_seen")
+        payload["worst_against_entry"] = trade.get("worst_against_entry")
+        payload["best_in_favor_entry"] = trade.get("best_in_favor_entry")
+        payload["price_path_points"] = trade.get("price_path_points")
+        payload["price_path"] = trade.get("price_path")
+
     return payload
 
 
@@ -127,7 +143,7 @@ def send_trade(trade, close_data):
             )
             return False
 
-        print("[GLOBAL STATS] Live trade sent")
+        print("[GLOBAL STATS] Trade sent")
         return True
 
     except requests.exceptions.RequestException as e:
