@@ -20,7 +20,7 @@ def env_bool(name, default=True):
 
 BOT_VERSION = os.getenv(
     "BOT_VERSION",
-    "0.3.0"
+    "0.3.5"
 )
 
 MODE = os.getenv(
@@ -78,29 +78,17 @@ LIVE_MAX_CONTRACTS = int(
     )
 )
 
-# Balance → Contracts
 BALANCE_STEPS = [
-
     (5, 1),
-
     (10, 2),
-
     (25, 3),
-
     (30, 5),
-
     (40, 6),
-
     (50, 8),
-
     (75, 9),
-
     (100, 12),
-
     (250, 20),
-
     (500, 30),
-
 ]
 
 
@@ -126,6 +114,23 @@ MAX_TIME_LEFT_MINUTES = int(
     os.getenv(
         "MAX_TIME_LEFT_MINUTES",
         6
+    )
+)
+
+
+# ==========================
+# Stop Loss
+# ==========================
+
+ENABLE_STOP_LOSS = env_bool(
+    "ENABLE_STOP_LOSS",
+    True
+)
+
+STOP_LOSS_PRICE = float(
+    os.getenv(
+        "STOP_LOSS_PRICE",
+        0.35
     )
 )
 

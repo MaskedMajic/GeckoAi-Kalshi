@@ -120,6 +120,7 @@ def close_paper_trade(trade):
         "exit_contract_value": exit_contract_value,
         "winning_side": winning_side,
         "result": result,
+        "exit_reason": "SETTLEMENT",
         "pnl": round(pnl, 2),
         "bankroll_after": round(new_bankroll, 2),
     }

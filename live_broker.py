@@ -9,6 +9,8 @@ import risk
 import discord_alerts
 import kalshi_client
 import trade_logger
+import stats
+import global_stats
 
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
@@ -119,6 +121,25 @@ def normalize_fill_price(side, raw_avg_fill):
     return round(
         1 - raw_avg_fill,
         4
+    )
+
+
+def calc_exit_order(side, current_price):
+    if side == "YES":
+        return (
+            "ask",
+            max(
+                0.01,
+                round(current_price - 0.01, 2)
+            )
+        )
+
+    return (
+        "bid",
+        min(
+            0.99,
+            round((1 - current_price) + 0.01, 2)
+        )
     )
 
 
@@ -321,3 +342,168 @@ def place_live_order(market, side, entry, time_left):
     )
 
     return None
+
+
+def exit_live_position(trade, current_price):
+    contracts = int(
+        trade.get(
+            "contracts",
+            0
+        )
+    )
+
+    if contracts < 1:
+        return False
+
+    side = trade.get("side")
+    ticker = trade.get("ticker")
+
+    order_side, exit_limit = calc_exit_order(
+        side,
+        current_price
+    )
+
+    body = {
+        "ticker": ticker,
+        "client_order_id": str(uuid.uuid4()),
+        "side": order_side,
+        "count": str(contracts),
+        "price": f"{exit_limit:.4f}",
+        "time_in_force": "immediate_or_cancel",
+        "self_trade_prevention_type": "taker_at_cross",
+    }
+
+    repaint(
+        f"🛑 [STOP EXIT] "
+        f"{side} | "
+        f"Now={current_price:.2f} | "
+        f"Limit={exit_limit:.2f} | "
+        f"Contracts={contracts}"
+    )
+
+    try:
+        response = requests.post(
+            HOST + ORDER_PATH,
+            headers=headers("POST", ORDER_PATH),
+            json=body,
+            timeout=10
+        )
+
+    except requests.exceptions.RequestException as e:
+        repaint(f"🔴 [STOP EXIT ERROR] {e}")
+
+        discord_alerts.send_message(
+            f"🔴 **STOP EXIT ERROR** | "
+            f"`{ticker}` | {side} | `{e}`"
+        )
+
+        return False
+
+    if response.status_code not in [200, 201]:
+        repaint(
+            f"🔴 [STOP EXIT FAILED] "
+            f"Status={response.status_code}"
+        )
+
+        discord_alerts.send_message(
+            f"🔴 **STOP EXIT FAILED** | "
+            f"`{ticker}` | {side} | Status `{response.status_code}`"
+        )
+
+        return False
+
+    data = response.json()
+
+    fill = float(
+        data.get(
+            "fill_count",
+            "0"
+        )
+    )
+
+    if fill <= 0:
+        repaint(
+            f"⚪ [STOP EXIT NO FILL] "
+            f"{side} | "
+            f"Limit={exit_limit:.2f}"
+        )
+
+        return False
+
+    exit_price = round(
+        float(current_price),
+        4
+    )
+
+    entry_price = float(
+        trade.get(
+            "avg_fill_price",
+            trade.get("entry", 0)
+        )
+    )
+
+    pnl = round(
+        fill * (exit_price - entry_price),
+        2
+    )
+
+    bankroll_before = float(
+        trade.get(
+            "bankroll_before",
+            0
+        )
+    )
+
+    bankroll_after = round(
+        bankroll_before + pnl,
+        2
+    )
+
+    close_data = {
+        "closed_at": trade_logger.now_iso(),
+        "btc_close_price": kalshi_client.get_btc_price(),
+        "exit_contract_value": exit_price,
+        "winning_side": None,
+        "result": "LOSS",
+        "exit_reason": "STOP_LOSS",
+        "pnl": pnl,
+        "bankroll_after": bankroll_after,
+    }
+
+    trade_logger.log_trade_close(
+        trade,
+        close_data
+    )
+
+    stats.save_trade(
+        market=ticker,
+        side=side,
+        entry=trade.get("entry"),
+        result="LOSS",
+        pnl=pnl,
+        bankroll=bankroll_after,
+    )
+
+    global_stats.send_trade(
+        trade,
+        close_data
+    )
+
+    discord_alerts.send_message(
+        f"🛑 **STOP LOSS EXIT** | `{ticker}`\n"
+        f"Side: **{side}** | "
+        f"Entry: `{entry_price:.2f}` | "
+        f"Exit: `{exit_price:.2f}` | "
+        f"Contracts: `{int(fill)}`\n"
+        f"Recovered: `${exit_price * fill:.2f}` | "
+        f"PnL: `${pnl:+.2f}`"
+    )
+
+    repaint(
+        f"🛑 [STOP EXIT FILLED] "
+        f"{side} | "
+        f"Exit={exit_price:.2f} | "
+        f"PnL=${pnl:+.2f}"
+    )
+
+    return True

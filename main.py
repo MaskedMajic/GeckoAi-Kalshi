@@ -128,6 +128,14 @@ def track_trade_price(trade, current):
     )
 
 
+def should_stop_loss(current):
+    return (
+        config.MODE == "live_test"
+        and getattr(config, "ENABLE_STOP_LOSS", False)
+        and current <= getattr(config, "STOP_LOSS_PRICE", 0)
+    )
+
+
 def dashboard_header():
     summary = stats.get_summary()
 
@@ -206,8 +214,12 @@ startup = (
     f"Mode: {display_mode}\n"
     f"Balance: ${starting_balance:.2f}\n"
     f"Contracts: {risk.get_contracts(starting_balance, 0.90)}\n"
-    f"Sizing: {config.SIZING_MODE}"
+    f"Sizing: {config.SIZING_MODE}\n"
+    f"Stop Loss: {'ON' if getattr(config, 'ENABLE_STOP_LOSS', False) else 'OFF'}"
 )
+
+if getattr(config, "ENABLE_STOP_LOSS", False):
+    startup += f" @ {config.STOP_LOSS_PRICE:.2f}"
 
 discord_alerts.send_message(startup)
 
@@ -244,6 +256,30 @@ while True:
 
             mm, ss, _ = time_left(open_trade["close"])
 
+            if should_stop_loss(current):
+
+                repaint(
+                    dashboard_header()
+                    +
+                    f"{RED}🛑 STOP LOSS TRIGGERED{RESET}\n\n"
+                    f"Ticker: {open_trade['ticker']}\n"
+                    f"Side: {open_trade['side']}\n"
+                    f"Entry: {open_trade['entry']:.2f}\n"
+                    f"Now: {current:.2f}\n"
+                    f"Stop: {config.STOP_LOSS_PRICE:.2f}\n"
+                    f"Time Left: {mm:02}:{ss:02}\n"
+                )
+
+                exited = live_broker.exit_live_position(
+                    open_trade,
+                    current
+                )
+
+                if exited:
+                    open_trade = None
+                    time.sleep(5)
+                    continue
+
             repaint(
                 dashboard_header()
                 +
@@ -252,6 +288,7 @@ while True:
                 f"Side: {open_trade['side']}\n"
                 f"Entry: {open_trade['entry']:.2f}\n"
                 f"Now: {current:.2f}\n"
+                f"Stop Loss: {config.STOP_LOSS_PRICE:.2f}\n"
                 f"Lowest Seen: {open_trade['lowest_seen']:.2f}\n"
                 f"Highest Seen: {open_trade['highest_seen']:.2f}\n"
                 f"Worst Against: {open_trade['worst_against_entry']:.2f}\n"

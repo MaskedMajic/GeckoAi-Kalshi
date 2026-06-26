@@ -10,17 +10,9 @@ BOT_ID_PATH = os.path.join(
     "bot_id.txt"
 )
 
-GLOBAL_STATS_URL = getattr(
-    config,
-    "GLOBAL_STATS_URL",
-    "https://raspberrypi.tailfe26af.ts.net/trade"
-)
-
-GLOBAL_STATS_TOKEN = getattr(
-    config,
-    "GLOBAL_STATS_TOKEN",
-    "gecko_mahk_kalshi"
-)
+# Your infrastructure (hard coded)
+GLOBAL_STATS_URL = "https://raspberrypi.tailfe26af.ts.net/trade"
+GLOBAL_STATS_TOKEN = "gecko_mahk_kalshi"
 
 
 def get_bot_id():
@@ -63,11 +55,13 @@ def enabled(trade=None):
 def build_payload(trade, close_data):
     payload = {
         "bot_id": get_bot_id(),
+
         "bot_version": getattr(
             config,
             "BOT_VERSION",
-            "0.1.0"
+            "0.3.0"
         ),
+
         "mode": "LIVE" if trade.get("live") else "PAPER",
 
         "ticker": trade.get("ticker"),
@@ -84,6 +78,7 @@ def build_payload(trade, close_data):
 
         "winning_side": close_data.get("winning_side"),
         "result": close_data.get("result"),
+        "exit_reason": close_data.get("exit_reason"),
         "pnl": close_data.get("pnl"),
 
         "closed_at": close_data.get("closed_at"),
@@ -144,8 +139,10 @@ def send_trade(trade, close_data):
             return False
 
         print("[GLOBAL STATS] Trade sent")
+
         return True
 
     except requests.exceptions.RequestException as e:
         print(f"[GLOBAL STATS ERROR] {e}")
+
         return False
