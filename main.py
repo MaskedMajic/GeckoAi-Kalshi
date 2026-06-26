@@ -225,6 +225,7 @@ discord_alerts.send_message(startup)
 
 open_trade = None
 stream_ticker = None
+stopped_out_ticker = None
 
 
 while True:
@@ -276,6 +277,7 @@ while True:
                 )
 
                 if exited:
+                    stopped_out_ticker = open_trade["ticker"]
                     open_trade = None
                     time.sleep(5)
                     continue
@@ -317,6 +319,7 @@ while True:
 
     if stream_ticker != market["ticker"]:
         stream_ticker = market["ticker"]
+        stopped_out_ticker = None
 
         kalshi_stream.stop()
         kalshi_stream.start(stream_ticker)
@@ -352,6 +355,22 @@ while True:
 
     side = "-"
     entry = None
+
+    if stopped_out_ticker == market["ticker"]:
+        repaint(
+            dashboard_header()
+            +
+            f"{RED}🔒 MARKET LOCKED AFTER STOP{RESET}\n\n"
+            f"Ticker: {market['ticker']}\n"
+            f"Reason: Stop loss already triggered on this market\n"
+            f"Time Left: {mm:02}:{ss:02}\n"
+            f"YES: {yes:.2f}\n"
+            f"NO: {no:.2f}\n"
+            f"Source: {live_price['source']}\n"
+        )
+
+        time.sleep(1)
+        continue
 
     if config.ENTRY_MIN <= yes <= config.ENTRY_MAX:
         side = "YES"
