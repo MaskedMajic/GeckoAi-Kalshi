@@ -130,7 +130,7 @@ ENABLE_STOP_LOSS = env_bool(
 STOP_LOSS_PRICE = float(
     os.getenv(
         "STOP_LOSS_PRICE",
-        0.35
+        0.15
     )
 )
 
