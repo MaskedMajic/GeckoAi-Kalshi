@@ -11,7 +11,7 @@ if exist venv\Scripts\activate.bat (
 call venv\Scripts\activate.bat
 )
 
-python GeckoAi.py
+python start.py
 
 echo.
 echo Bot exited.
