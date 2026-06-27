@@ -1,0 +1,392 @@
+[TIMING] dashboard.refresh | 1ms
+[TIMING] market.fetch.full | 117ms
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 25ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 0ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 25ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 25ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 23ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 0ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 25ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 1ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 1ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 23ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 25ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 1ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 29ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 1ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 25ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 1ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 25ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 25ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 0ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 26ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 2ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 2ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 26ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 25ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 25ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 25ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 25ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 26ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 26ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 1ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 1ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 36ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 0ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 25ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 23ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 25ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 25ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 1ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 26ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 25ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 30ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 25ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 0ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 25ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 25ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 26ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 26ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 30ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 0ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 26ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 25ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 25ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 27ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 25ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 23ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 25ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 25ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 25ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 27ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 25ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 25ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 26ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 1ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 1ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 25ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 25ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 25ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 1ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 0ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 25ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 26ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 25ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 2ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 25ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 2ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 26ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 24ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
+[TIMING] market.fetch.cached | 0ms | KXBTC15M-26JUN262245-45
+[TIMING] price.rest | 25ms | KXBTC15M-26JUN262245-45
+[TIMING] dashboard.refresh | 1ms
+[TIMING] dashboard.repaint | 0ms
