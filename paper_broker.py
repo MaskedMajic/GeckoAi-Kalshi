@@ -41,12 +41,14 @@ def open_paper_trade(market, side, entry, time_left):
         "contracts": contracts,
         "contract_cost": position,
         "fees": 0,
-        "btc_entry_price": kalshi_client.get_btc_price(),
+        "btc_entry_price": None,
         "opened_at": trade_logger.now_iso(),
         "live": False,
     }
 
     trade_logger.log_trade_open(trade)
+
+    trade["btc_entry_price"] = kalshi_client.get_btc_price()
 
     message = (
         f"🚀 **PAPER OPEN** | `{trade['ticker']}`\n"

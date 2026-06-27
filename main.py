@@ -1,5 +1,7 @@
 import os
+import sys
 import time
+from pathlib import Path
 from datetime import datetime, timezone
 
 import config
@@ -19,6 +21,25 @@ BLUE = "\033[96m"
 PURPLE = "\033[95m"
 RED = "\033[91m"
 RESET = "\033[0m"
+HOME = "\033[H"
+CLEAR_FROM_CURSOR = "\033[J"
+HIDE_CURSOR = "\033[?25l"
+SHOW_CURSOR = "\033[?25h"
+
+TIMING_LOG_PATH = Path("data/timing.log")
+
+
+def ms_now():
+    return int(time.time() * 1000)
+
+
+def log_timing(stage, started_ms, extra=""):
+    elapsed = ms_now() - started_ms
+    suffix = f" | {extra}" if extra else ""
+    TIMING_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with TIMING_LOG_PATH.open("a", encoding="utf-8") as f:
+        f.write(f"[TIMING] {stage} | {elapsed}ms{suffix}\n")
+    return elapsed
 
 
 def time_left(close):
@@ -40,8 +61,18 @@ def fmt_runtime(seconds):
 
 
 def repaint(message):
-    os.system("cls")
-    print(message, end="", flush=True)
+    if sys.stdout.isatty():
+        if not _display_snapshot.get("initialized"):
+            sys.stdout.write(HIDE_CURSOR)
+            sys.stdout.write(message)
+            _display_snapshot["initialized"] = True
+        else:
+            sys.stdout.write(HOME)
+            sys.stdout.write(CLEAR_FROM_CURSOR)
+            sys.stdout.write(message)
+        sys.stdout.flush()
+    else:
+        print(message, end="", flush=True)
 
 
 def safe_streak():
@@ -68,9 +99,11 @@ def get_starting_balance():
 
 
 def get_price(market):
+    started_ms = ms_now()
     latest = kalshi_stream.get_latest()
 
     if latest and latest.get("ticker") == market["ticker"]:
+        log_timing("price.stream", started_ms, market["ticker"])
         return {
             "yes": latest["yes"],
             "no": latest["no"],
@@ -80,12 +113,14 @@ def get_price(market):
     fallback = kalshi_client.get_market_prices(market["ticker"])
 
     if fallback:
+        log_timing("price.rest", started_ms, market["ticker"])
         return {
             "yes": fallback["yes"],
             "no": fallback["no"],
             "source": "REST",
         }
 
+    log_timing("price.none", started_ms, market["ticker"])
     return None
 
 
@@ -136,17 +171,33 @@ def should_stop_loss(current):
     )
 
 
-def dashboard_header():
+DASHBOARD_REFRESH_MS = 1000
+REPAINT_INTERVAL_MS = 500
+
+_display_snapshot = {
+    "summary": None,
+    "streak_label": "-",
+    "header": "",
+    "last_refresh_ms": 0,
+    "last_render_ms": 0,
+    "last_render_text": None,
+    "initialized": False,
+}
+
+
+def refresh_display_snapshot(force=False):
+    started_ms = ms_now()
+    now_ms = started_ms
+
+    if (
+        not force
+        and _display_snapshot["summary"] is not None
+        and now_ms - _display_snapshot["last_refresh_ms"] < DASHBOARD_REFRESH_MS
+    ):
+        return _display_snapshot
+
     summary = stats.get_summary()
-
-    runtime = fmt_runtime(
-        int(time.time() - session_started_at)
-    )
-
-    session_trades = summary["total_trades"] - start_summary["total_trades"]
-    session_wins = summary["wins"] - start_summary["wins"]
-    session_losses = summary["losses"] - start_summary["losses"]
-    session_pnl = summary["total_pnl"] - start_summary["total_pnl"]
+    streak_label = safe_streak()
 
     current_balance = (
         summary["latest_bankroll"]
@@ -159,42 +210,71 @@ def dashboard_header():
         0.90
     )
 
+    session_trades = summary["total_trades"] - start_summary["total_trades"]
+    session_wins = summary["wins"] - start_summary["wins"]
+    session_losses = summary["losses"] - start_summary["losses"]
+    session_pnl = summary["total_pnl"] - start_summary["total_pnl"]
     total_pnl = current_balance - config.STARTING_BANKROLL
+    runtime = fmt_runtime(int(time.time() - session_started_at))
 
-    return (
+    header = (
         f"{GREEN}=============================={RESET}\n"
         f"{GREEN}       GECKOAI KALSHI{RESET}\n"
         f"{GREEN}=============================={RESET}\n\n"
-
         f"{'Mode:':<10}"
         f"{display_mode:<14}"
         f"{'Record:':<10}"
         f"{summary['wins']}W / {summary['losses']}L\n"
-
         f"{'Balance:':<10}"
         f"${current_balance:<13.2f}"
         f"{'Win Rate:':<10}"
         f"{summary['win_rate']:.2f}%\n"
-
         f"{'Contracts:':<10}"
         f"{current_contracts:<13}"
         f"{'Streak:':<10}"
-        f"{safe_streak()}\n\n"
-
+        f"{streak_label}\n\n"
         f"{'Sizing:':<10}"
         f"{config.SIZING_MODE}\n"
-
         f"{'PnL:':<10}"
         f"${total_pnl:+.2f}\n"
-
         f"{'Start:':<10}"
         f"${starting_balance:.2f}\n\n"
-
         f"Session Runtime: {runtime}\n"
         f"Session Trades: {session_trades}\n"
         f"Session W/L: {session_wins}W / {session_losses}L\n"
         f"Session PnL: ${session_pnl:+.2f}\n\n"
     )
+
+    _display_snapshot.update({
+        "summary": summary,
+        "streak_label": streak_label,
+        "header": header,
+        "last_refresh_ms": now_ms,
+    })
+
+    log_timing("dashboard.refresh", started_ms)
+    return _display_snapshot
+
+
+def dashboard_header(force=False):
+    snapshot = refresh_display_snapshot(force=force)
+    return snapshot["header"]
+
+
+def repaint_throttled(message, force=False):
+    now_ms = ms_now()
+
+    if not force:
+        if message == _display_snapshot["last_render_text"]:
+            return
+        if now_ms - _display_snapshot["last_render_ms"] < REPAINT_INTERVAL_MS:
+            return
+
+    started_ms = now_ms
+    repaint(message)
+    _display_snapshot["last_render_ms"] = now_ms
+    _display_snapshot["last_render_text"] = message
+    log_timing("dashboard.repaint", started_ms)
 
 
 stats.init_db()
@@ -208,6 +288,8 @@ display_mode = (
     if config.MODE == "live_test"
     else config.MODE.upper()
 )
+
+refresh_display_snapshot(force=True)
 
 startup = (
     "📡 BOT STARTED\n"
@@ -226,6 +308,7 @@ discord_alerts.send_message(startup)
 open_trade = None
 stream_ticker = None
 stopped_out_ticker = None
+current_market = None
 
 
 while True:
@@ -259,8 +342,8 @@ while True:
 
             if should_stop_loss(current):
 
-                repaint(
-                    dashboard_header()
+                repaint_throttled(
+                    dashboard_header(force=True)
                     +
                     f"{RED}🛑 STOP LOSS TRIGGERED{RESET}\n\n"
                     f"Ticker: {open_trade['ticker']}\n"
@@ -282,7 +365,7 @@ while True:
                     time.sleep(5)
                     continue
 
-            repaint(
+            repaint_throttled(
                 dashboard_header()
                 +
                 f"{YELLOW}🟡 ACTIVE TRADE{RESET}\n\n"
@@ -302,10 +385,23 @@ while True:
         time.sleep(1)
         continue
 
-    market = kalshi_client.get_market()
+    market_started_ms = ms_now()
+
+    refresh_market = (
+        current_market is None
+        or closed(current_market["close"])
+    )
+
+    if refresh_market:
+        market = kalshi_client.get_market(force_refresh=True)
+        current_market = market
+        log_timing("market.fetch.full", market_started_ms)
+    else:
+        market = current_market
+        log_timing("market.fetch.cached", market_started_ms, market["ticker"])
 
     if not market:
-        repaint(
+        repaint_throttled(
             dashboard_header()
             +
             f"{RED}🔴 WAITING FOR MARKET{RESET}\n"
@@ -313,6 +409,7 @@ while True:
 
         kalshi_stream.stop()
         stream_ticker = None
+        current_market = None
 
         time.sleep(5)
         continue
@@ -324,8 +421,8 @@ while True:
         kalshi_stream.stop()
         kalshi_stream.start(stream_ticker)
 
-        repaint(
-            dashboard_header()
+        repaint_throttled(
+            dashboard_header(force=True)
             +
             f"{PURPLE}🟣 STREAM ROLLOVER{RESET}\n\n"
             f"Ticker: {stream_ticker}\n"
@@ -338,7 +435,7 @@ while True:
     live_price = get_price(market)
 
     if not live_price:
-        repaint(
+        repaint_throttled(
             dashboard_header()
             +
             f"{BLUE}🔵 WAITING FOR PRICE{RESET}\n\n"
@@ -357,8 +454,8 @@ while True:
     entry = None
 
     if stopped_out_ticker == market["ticker"]:
-        repaint(
-            dashboard_header()
+        repaint_throttled(
+            dashboard_header(force=True)
             +
             f"{RED}🔒 MARKET LOCKED AFTER STOP{RESET}\n\n"
             f"Ticker: {market['ticker']}\n"
@@ -384,14 +481,20 @@ while True:
     reason = "-"
 
     if entry:
+        decision_started_ms = ms_now()
         allowed, reason = strategy.should_trade(
             entry,
             seconds_left / 60
         )
+        log_timing(
+            "decision.should_trade",
+            decision_started_ms,
+            f"side={side} entry={entry:.2f}"
+        )
 
     decision = "ENTER" if allowed else "WAIT"
 
-    repaint(
+    repaint_throttled(
         dashboard_header()
         +
         f"{GREEN}🟢 WATCH{RESET}\n\n"
@@ -406,8 +509,8 @@ while True:
     )
 
     if entry and allowed:
-        repaint(
-            dashboard_header()
+        repaint_throttled(
+            dashboard_header(force=True)
             +
             f"{BLUE}⚡ ENTRY SIGNAL{RESET}\n\n"
             f"Ticker: {market['ticker']}\n"
@@ -415,6 +518,8 @@ while True:
             f"Entry: {entry:.2f}\n"
             f"Time Left: {mm:02}:{ss:02}\n"
         )
+
+        entry_started_ms = ms_now()
 
         if config.MODE == "live_test":
             open_trade = live_broker.place_live_order(
@@ -431,5 +536,14 @@ while True:
                 entry,
                 seconds_left / 60,
             )
+
+        log_timing(
+            "entry.execute",
+            entry_started_ms,
+            f"mode={config.MODE} side={side} ticker={market['ticker']}"
+        )
+
+        if open_trade and open_trade.get("refresh_dashboard"):
+            refresh_display_snapshot(force=True)
 
     time.sleep(1)

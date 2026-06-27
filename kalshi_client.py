@@ -1,3 +1,4 @@
+import time
 import requests
 from datetime import datetime, timezone
 
@@ -5,12 +6,18 @@ BASE = "https://external-api.kalshi.com/trade-api/v2"
 
 SERIES_TICKER = "KXBTC15M"
 
+_session = requests.Session()
+_market_cache = {"value": None, "expires_at": 0.0}
+_price_cache = {}
+MARKET_CACHE_TTL_SECONDS = 2.0
+PRICE_CACHE_TTL_SECONDS = 0.35
+
 
 def get_btc_price():
 
     try:
 
-        response = requests.get(
+        response = _session.get(
             "https://api.coinbase.com/v2/prices/BTC-USD/spot",
             timeout=10
         )
@@ -33,7 +40,13 @@ def get_btc_price():
 
 def get_yes_no_prices(ticker):
 
-    response = requests.get(
+    now_ts = time.time()
+    cached = _price_cache.get(ticker)
+
+    if cached and cached["expires_at"] > now_ts:
+        return cached["value"]
+
+    response = _session.get(
         f"{BASE}/markets/{ticker}/orderbook",
         timeout=10
     )
@@ -67,7 +80,13 @@ def get_yes_no_prices(ticker):
         2
     )
 
-    return yes, no
+    value = (yes, no)
+    _price_cache[ticker] = {
+        "value": value,
+        "expires_at": now_ts + PRICE_CACHE_TTL_SECONDS,
+    }
+
+    return value
 
 
 def get_market_prices(ticker):
@@ -90,11 +109,21 @@ def get_market_prices(ticker):
     }
 
 
-def get_market():
+def get_market(force_refresh=False):
+
+    now_ts = time.time()
+    cached = _market_cache.get("value")
+
+    if (
+        not force_refresh
+        and cached
+        and _market_cache.get("expires_at", 0.0) > now_ts
+    ):
+        return cached
 
     try:
 
-        response = requests.get(
+        response = _session.get(
             f"{BASE}/markets",
             params={
                 "series_ticker":
@@ -197,7 +226,12 @@ def get_market():
             })
 
         if not valid:
+            _market_cache["value"] = None
+            _market_cache["expires_at"] = now_ts + 0.5
             return None
+
+        _market_cache["value"] = valid[0]
+        _market_cache["expires_at"] = now_ts + MARKET_CACHE_TTL_SECONDS
 
         return valid[0]
 
@@ -215,7 +249,7 @@ def get_market_result(ticker):
 
     try:
 
-        response = requests.get(
+        response = _session.get(
             f"{BASE}/markets/{ticker}",
             timeout=10
         )

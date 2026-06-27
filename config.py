@@ -20,7 +20,7 @@ def env_bool(name, default=True):
 
 BOT_VERSION = os.getenv(
     "BOT_VERSION",
-    "0.3.6"
+    "0.3.7"
 )
 
 MODE = os.getenv(

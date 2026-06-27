@@ -23,6 +23,11 @@ ORDER_PATH = "/trade-api/v2/portfolio/events/orders"
 BALANCE_PATH = "/trade-api/v2/portfolio/balance"
 
 MAX_FILL_ATTEMPTS = 5
+BALANCE_CACHE_TTL_SECONDS = 2.0
+
+_session = requests.Session()
+_key_cache = None
+_balance_cache = {"value": None, "expires_at": 0.0}
 
 
 def repaint(message):
@@ -30,21 +35,47 @@ def repaint(message):
     sys.stdout.flush()
 
 
+def ms_now():
+    return int(time.time() * 1000)
+
+
+def log_timing(stage, started_ms, extra=""):
+    elapsed = ms_now() - started_ms
+    suffix = f" | {extra}" if extra else ""
+    print(f"[TIMING] {stage} | {elapsed}ms{suffix}")
+    return elapsed
+
+
+def post_trade_side_effects(trade=None, close_data=None, messages=None):
+    messages = messages or []
+
+    for message in messages:
+        discord_alerts.send_message(message)
+
+    if trade and close_data:
+        global_stats.send_trade(trade, close_data)
+
+
 def load_key():
-    with open(config.KALSHI_PRIVATE_KEY_PATH, "rb") as f:
-        return load_pem_private_key(
-            f.read(),
-            password=None
-        )
+    global _key_cache
+
+    if _key_cache is None:
+        with open(config.KALSHI_PRIVATE_KEY_PATH, "rb") as f:
+            _key_cache = load_pem_private_key(
+                f.read(),
+                password=None
+            )
+
+    return _key_cache
 
 
 def sign_request(method, path):
+    started_ms = ms_now()
     timestamp = str(int(time.time() * 1000))
-    key = load_key()
 
     message = f"{timestamp}{method}{path}".encode()
 
-    signature = key.sign(
+    signature = load_key().sign(
         message,
         padding.PSS(
             mgf=padding.MGF1(hashes.SHA256()),
@@ -53,23 +84,40 @@ def sign_request(method, path):
         hashes.SHA256()
     )
 
-    return timestamp, base64.b64encode(signature).decode()
+    encoded = base64.b64encode(signature).decode()
+    log_timing("live.sign_request", started_ms, f"{method} {path}")
+    return timestamp, encoded
 
 
 def headers(method, path):
+    started_ms = ms_now()
     timestamp, signature = sign_request(method, path)
 
-    return {
+    header_map = {
         "KALSHI-ACCESS-KEY": config.KALSHI_KEY_ID,
         "KALSHI-ACCESS-TIMESTAMP": timestamp,
         "KALSHI-ACCESS-SIGNATURE": signature,
         "Content-Type": "application/json",
     }
 
+    log_timing("live.headers", started_ms, f"{method} {path}")
+    return header_map
 
-def get_live_balance():
+
+def get_live_balance(force_refresh=False):
+    started_ms = ms_now()
+    now_ts = time.time()
+
+    if (
+        not force_refresh
+        and _balance_cache["value"] is not None
+        and _balance_cache["expires_at"] > now_ts
+    ):
+        log_timing("live.balance.cached", started_ms)
+        return _balance_cache["value"]
+
     try:
-        response = requests.get(
+        response = _session.get(
             HOST + BALANCE_PATH,
             headers=headers("GET", BALANCE_PATH),
             timeout=10
@@ -83,16 +131,22 @@ def get_live_balance():
 
         data = response.json()
 
-        return float(
+        value = float(
             data.get(
                 "balance_dollars",
                 0
             )
         )
 
+        _balance_cache["value"] = value
+        _balance_cache["expires_at"] = now_ts + BALANCE_CACHE_TTL_SECONDS
+        log_timing("live.balance.fetch", started_ms)
+        return value
+
     except requests.exceptions.RequestException as e:
         repaint(f"🔴 [BALANCE ERROR] {e}")
         return 0
+
 
 
 def calc_price(side, entry):
@@ -144,6 +198,7 @@ def calc_exit_order(side, current_price):
 
 
 def place_live_order(market, side, entry, time_left):
+    order_total_started_ms = ms_now()
     balance = get_live_balance()
 
     contracts = risk.get_contracts(
@@ -165,6 +220,7 @@ def place_live_order(market, side, entry, time_left):
             entry
         )
 
+        body_started_ms = ms_now()
         body = {
             "ticker": market["ticker"],
             "client_order_id": str(uuid.uuid4()),
@@ -174,6 +230,7 @@ def place_live_order(market, side, entry, time_left):
             "time_in_force": "immediate_or_cancel",
             "self_trade_prevention_type": "taker_at_cross",
         }
+        log_timing("live.order.body", body_started_ms, f"attempt={attempt} ticker={market['ticker']}")
 
         repaint(
             f"⚡ [ORDER] "
@@ -184,21 +241,27 @@ def place_live_order(market, side, entry, time_left):
             f"Contracts={contracts}"
         )
 
+        request_started_ms = ms_now()
+        request_headers = headers("POST", ORDER_PATH)
+
         try:
-            response = requests.post(
+            response = _session.post(
                 HOST + ORDER_PATH,
-                headers=headers("POST", ORDER_PATH),
+                headers=request_headers,
                 json=body,
                 timeout=10
             )
+            log_timing("live.order.post", request_started_ms, f"attempt={attempt} status={response.status_code}")
 
         except requests.exceptions.RequestException as e:
             repaint(f"🔴 [ORDER ERROR] {e}")
 
-            discord_alerts.send_message(
-                f"❌ **ORDER ERROR {attempt}/{MAX_FILL_ATTEMPTS}** | "
-                f"`{market['ticker']}` | {side} @ `{entry:.2f}` | "
-                f"`{contracts}`ct | `{e}`"
+            post_trade_side_effects(
+                messages=[
+                    f"❌ **ORDER ERROR {attempt}/{MAX_FILL_ATTEMPTS}** | "
+                    f"`{market['ticker']}` | {side} @ `{entry:.2f}` | "
+                    f"`{contracts}`ct | `{e}`"
+                ]
             )
 
             time.sleep(1)
@@ -211,10 +274,12 @@ def place_live_order(market, side, entry, time_left):
                 f"Status={response.status_code}"
             )
 
-            discord_alerts.send_message(
-                f"❌ **LIVE FAILED {attempt}/{MAX_FILL_ATTEMPTS}** | "
-                f"`{market['ticker']}` | {side} @ `{entry:.2f}` | "
-                f"Limit `{price:.2f}` | Status `{response.status_code}`"
+            post_trade_side_effects(
+                messages=[
+                    f"❌ **LIVE FAILED {attempt}/{MAX_FILL_ATTEMPTS}** | "
+                    f"`{market['ticker']}` | {side} @ `{entry:.2f}` | "
+                    f"Limit `{price:.2f}` | Status `{response.status_code}`"
+                ]
             )
 
             time.sleep(1)
@@ -270,7 +335,7 @@ def place_live_order(market, side, entry, time_left):
                 f"Fee={fee_display}"
             )
 
-            discord_alerts.send_message(
+            fill_message = (
                 f"✅ **FILL {attempt}/{MAX_FILL_ATTEMPTS}** | "
                 f"`{market['ticker']}` | {side} @ `{entry:.2f}` | "
                 f"`{fill:.0f}`ct | Limit `{price:.2f}` | "
@@ -291,7 +356,7 @@ def place_live_order(market, side, entry, time_left):
                 "raw_avg_fill_price": raw_avg_fill,
                 "limit_price": price,
                 "fees": fee,
-                "btc_entry_price": kalshi_client.get_btc_price(),
+                "btc_entry_price": None,
                 "opened_at": trade_logger.now_iso(),
                 "bankroll_before": balance,
                 "live": True,
@@ -302,6 +367,23 @@ def place_live_order(market, side, entry, time_left):
                 trade
             )
 
+            btc_started_ms = ms_now()
+            trade["btc_entry_price"] = kalshi_client.get_btc_price()
+            log_timing("live.btc_entry_price", btc_started_ms, market["ticker"])
+
+            _balance_cache["value"] = round(balance - contract_cost - fee, 2)
+            _balance_cache["expires_at"] = time.time() + BALANCE_CACHE_TTL_SECONDS
+
+            post_trade_side_effects(
+                messages=[fill_message]
+            )
+            log_timing(
+                "live.order.total",
+                order_total_started_ms,
+                f"attempt={attempt} fill={fill:.0f} ticker={market['ticker']}"
+            )
+
+            trade["refresh_dashboard"] = True
             return trade
 
         repaint(
@@ -311,10 +393,12 @@ def place_live_order(market, side, entry, time_left):
             f"Limit={price:.2f}"
         )
 
-        discord_alerts.send_message(
-            f"⚪ **NO FILL {attempt}/{MAX_FILL_ATTEMPTS}** | "
-            f"`{market['ticker']}` | {side} @ `{entry:.2f}` | "
-            f"`{contracts}`ct | Limit `{price:.2f}`"
+        post_trade_side_effects(
+            messages=[
+                f"⚪ **NO FILL {attempt}/{MAX_FILL_ATTEMPTS}** | "
+                f"`{market['ticker']}` | {side} @ `{entry:.2f}` | "
+                f"`{contracts}`ct | Limit `{price:.2f}`"
+            ]
         )
 
         latest = kalshi_client.get_market_prices(
@@ -330,9 +414,11 @@ def place_live_order(market, side, entry, time_left):
 
         time.sleep(1)
 
-    discord_alerts.send_message(
-        f"⚪ **FAILED AFTER {MAX_FILL_ATTEMPTS}** | "
-        f"`{market['ticker']}` | {side}"
+    post_trade_side_effects(
+        messages=[
+            f"⚪ **FAILED AFTER {MAX_FILL_ATTEMPTS}** | "
+            f"`{market['ticker']}` | {side}"
+        ]
     )
 
     repaint(
@@ -345,6 +431,7 @@ def place_live_order(market, side, entry, time_left):
 
 
 def exit_live_position(trade, current_price):
+    exit_total_started_ms = ms_now()
     contracts = int(
         trade.get(
             "contracts",
@@ -363,6 +450,7 @@ def exit_live_position(trade, current_price):
         current_price
     )
 
+    body_started_ms = ms_now()
     body = {
         "ticker": ticker,
         "client_order_id": str(uuid.uuid4()),
@@ -372,6 +460,7 @@ def exit_live_position(trade, current_price):
         "time_in_force": "immediate_or_cancel",
         "self_trade_prevention_type": "taker_at_cross",
     }
+    log_timing("live.exit.body", body_started_ms, f"ticker={ticker}")
 
     repaint(
         f"🛑 [STOP EXIT] "
@@ -381,20 +470,26 @@ def exit_live_position(trade, current_price):
         f"Contracts={contracts}"
     )
 
+    request_started_ms = ms_now()
+    request_headers = headers("POST", ORDER_PATH)
+
     try:
-        response = requests.post(
+        response = _session.post(
             HOST + ORDER_PATH,
-            headers=headers("POST", ORDER_PATH),
+            headers=request_headers,
             json=body,
             timeout=10
         )
+        log_timing("live.exit.post", request_started_ms, f"status={response.status_code} ticker={ticker}")
 
     except requests.exceptions.RequestException as e:
         repaint(f"🔴 [STOP EXIT ERROR] {e}")
 
-        discord_alerts.send_message(
-            f"🔴 **STOP EXIT ERROR** | "
-            f"`{ticker}` | {side} | `{e}`"
+        post_trade_side_effects(
+            messages=[
+                f"🔴 **STOP EXIT ERROR** | "
+                f"`{ticker}` | {side} | `{e}`"
+            ]
         )
 
         return False
@@ -405,9 +500,11 @@ def exit_live_position(trade, current_price):
             f"Status={response.status_code}"
         )
 
-        discord_alerts.send_message(
-            f"🔴 **STOP EXIT FAILED** | "
-            f"`{ticker}` | {side} | Status `{response.status_code}`"
+        post_trade_side_effects(
+            messages=[
+                f"🔴 **STOP EXIT FAILED** | "
+                f"`{ticker}` | {side} | Status `{response.status_code}`"
+            ]
         )
 
         return False
@@ -484,12 +581,7 @@ def exit_live_position(trade, current_price):
         bankroll=bankroll_after,
     )
 
-    global_stats.send_trade(
-        trade,
-        close_data
-    )
-
-    discord_alerts.send_message(
+    exit_message = (
         f"🛑 **STOP LOSS EXIT** | `{ticker}`\n"
         f"Side: **{side}** | "
         f"Entry: `{entry_price:.2f}` | "
@@ -504,6 +596,20 @@ def exit_live_position(trade, current_price):
         f"{side} | "
         f"Exit={exit_price:.2f} | "
         f"PnL=${pnl:+.2f}"
+    )
+
+    _balance_cache["value"] = bankroll_after
+    _balance_cache["expires_at"] = time.time() + BALANCE_CACHE_TTL_SECONDS
+
+    post_trade_side_effects(
+        trade=trade,
+        close_data=close_data,
+        messages=[exit_message]
+    )
+    log_timing(
+        "live.exit.total",
+        exit_total_started_ms,
+        f"ticker={ticker} fill={int(fill)}"
     )
 
     return True

@@ -3,6 +3,7 @@ import base64
 import json
 import threading
 import time
+import os
 
 import websockets
 
@@ -22,6 +23,15 @@ RESET = "\033[0m"
 
 _latest = {}
 _running = False
+_warned_missing_auth = False
+
+
+def auth_ready():
+    return bool(
+        getattr(config, "KALSHI_KEY_ID", "")
+    ) and os.path.exists(
+        getattr(config, "KALSHI_PRIVATE_KEY_PATH", "")
+    )
 
 
 def load_key():
@@ -117,6 +127,18 @@ def _run_loop(market_ticker):
 
 
 def start(market_ticker):
+    global _warned_missing_auth
+
+    if not auth_ready():
+        if not _warned_missing_auth:
+            print()
+            print(
+                f"{RED}🔴 [STREAM DISABLED]{RESET} "
+                "Missing Kalshi auth; using REST-only paper mode."
+            )
+            _warned_missing_auth = True
+        return None
+
     thread = threading.Thread(
         target=_run_loop,
         args=(market_ticker,),
