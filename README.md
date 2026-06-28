@@ -17,6 +17,7 @@ This is **not** a general crypto bot, and it is **not** trying to predict all of
 - Optionally sends Discord notifications
 - Optionally sends closed trades to a global analytics receiver
 - Displays a live terminal dashboard
+- Join Discord! https://discord.gg/ZJdCzzdB4p
 
 ## Current behavior at a glance
 
